@@ -102,25 +102,9 @@ namespace RayTraceApplication
             Color ret_color = new Color(0, 0, 0);
             double t_ret = t_max;
             Sphere sphere_active = null;
-            foreach (var sphere in environment.spheres)
-            {
-                double t_active;
-                double[] ts = new double[2];
-                ts = IntersectRaySphere(o/100,d/100,sphere, t_min, t_max);
-                t_active = ts.Min();
-                if (t_active > t_min && t_active < t_max)
-                {
-                    if (t_active < t_ret)
-                    {
-                        t_ret = t_active;
-                        sphere_active = sphere;
-                        Console.BackgroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Find a Sphere!!!!!!!!!!!!!!!!!!!!!!!!!");
-                        Console.BackgroundColor= ConsoleColor.Black;
-                    }
-                }
 
-            }
+            sphere_active = ClosestInter(o, d, t_min, t_max, out t_ret);
+
             if (t_ret > t_min && t_ret < t_max && sphere_active!=null)
             {
                 Vector3 P = Org + d * new Vector3((float)t_ret, (float)t_ret, (float)t_ret);
@@ -138,6 +122,39 @@ namespace RayTraceApplication
 
         //获取最短的t,用于阴影检测
         //static double ClosestInter(Vector3 o, Vector3 d, double t_min, double t_max) { 
+
+        static Sphere ClosestInter(Vector3 P, Vector3 L, double t_min, double t_max, out double Sphere_t)
+        {
+            double t_ret = t_max;
+            Sphere sphere_active = null;
+            foreach (var sphere in environment.spheres)
+            {
+                double t_active;
+                double[] ts = new double[2];
+                ts = IntersectRaySphere(P / 100, L / 100, sphere, t_min, t_max);
+                t_active = ts.Min();
+                if (t_active > t_min && t_active < t_max)
+                {
+                    if (t_active < t_ret)
+                    {
+                        t_ret = t_active;
+                        sphere_active = sphere;
+                        Console.BackgroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Find a Sphere!!!!!!!!!!!!!!!!!!!!!!!!!");
+                        Console.BackgroundColor = ConsoleColor.Black;
+                    }
+                }
+
+            }
+
+            Sphere_t = t_ret;
+            return sphere_active;
+        }
+
+
+
+
+
 
         //}
 
@@ -190,7 +207,9 @@ namespace RayTraceApplication
                     Sphere Shadow_sphere;
                     double Shadow_t;
                     //阴影检测
-
+                    Shadow_sphere = ClosestInter(P, L, 0.001, t_max, out Shadow_t);
+                    if (Shadow_sphere != null)
+                        continue;
 
 
                     //漫反射计算
