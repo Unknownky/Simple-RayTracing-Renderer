@@ -14,7 +14,7 @@ namespace RayTraceApplication
         public int CanvasWidth { get; }
 
         public int CanvasDistance { get; }
-        public Canvas(int height = 540, int width = 960, int distance = 240)
+        public Canvas(int height = 3*LG.Unit, int width = 4 * LG.Unit, int distance = 2 * LG.Unit)
         {
             CanvasHeight = height;
             CanvasWidth = width;

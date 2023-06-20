@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace RayTraceApplication
 {
+    public static class LG
+    {
+        public const int Unit = 1;
+        public const int PixelPerUnit = 250;
+    }
+
     public class Environment
     {
         public static System.Drawing.Color backgroundColor = System.Drawing.Color.Black;
@@ -27,36 +33,36 @@ namespace RayTraceApplication
         Sphere redSphere =
             new Sphere()
             {
-                center = new Vector3(0, 0, 800),
-                radius = 300,
+                center = new Vector3(0, 0, 9)*LG.Unit,
+                radius = 2 * LG.Unit,
                 color = new Vector3(255, 0, 0),
                 specular = 200,
-                reflection = 100
+                reflection = 0.4
             };
 
         Sphere blueSphere =
             new Sphere()
             {
-                center = new Vector3(500, 500, 800),
-                radius = 300,
+                center = new Vector3(5, 2, 7) * LG.Unit,
+                radius = 3 * LG.Unit,
                 color = new Vector3(0, 0, 255),
                 specular = 100,
-                reflection = 2
+                reflection = 0.8
             };
 
         Sphere yellowSphere =
             new Sphere()
             {
-                center = new Vector3(-600, 200, 1000),
-                radius = 320,
+                center = new Vector3(-6, 2, 10) * LG.Unit,
+                radius = 4 * LG.Unit,
                 color = new Vector3(0, 255, 0),
                 specular = 600,
-                reflection = 50
+                reflection = 0.5
             };
 
-        Light globalLight = new GlobalLight() { intensity = 0.2, position = new Vector3(0, 0, 1200) };
-        Light directionLight = new DirectionalLight() { intensity = 0.3, direction = new Vector3(0, -600, 0), position = new Vector3(200, 600, 800) };
-        Light pointLight = new PointLight() { intensity = 0.5, position = new Vector3(-300, 700, 800) };
+        Light globalLight = new GlobalLight() { intensity = 0.2, position = new Vector3(0, 0, 12) * LG.Unit };
+        Light directionLight = new DirectionalLight() { intensity = 0.3, direction = new Vector3(2, -6, 0) * LG.Unit, position = new Vector3(2, 6, 8) * LG.Unit };
+        Light pointLight = new PointLight() { intensity = 0.5, position = new Vector3(-3, 7, 7) * LG.Unit };
 
     }
 }
