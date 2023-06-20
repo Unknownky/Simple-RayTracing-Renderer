@@ -77,7 +77,7 @@ namespace RayTraceApplication
 
                     Console.WriteLine("On viewPort {0} {1} {2}", viewPoint.X,viewPoint.Y, viewPoint.Z);
 
-                    Color myFillColor = TraceRay(Org, viewPoint,global_t_min,global_t_max);
+                    Color myFillColor = TraceRay(Org, viewPoint,global_t_min,global_t_max, LG.Max_depth);
 
                     int Draw_colorX, Draw_colorY, Draw_colorZ;
                     Draw_colorX = ClampToColor((int)myFillColor.color.X);
@@ -127,14 +127,17 @@ namespace RayTraceApplication
             return new Vector3(x, y, z);
         }
 
-        static Color TraceRay(Vector3 O, Vector3 d, double t_min, double t_max)//返回自定义的Color结构体
+        static Color TraceRay(Vector3 O, Vector3 d, double t_min, double t_max, int depth)//返回自定义的Color结构体
         {//0代表起始点，d代表viewport上的点,t_min代表探测的最小值t*d,t_max代表探测的最大区域
          //对场景中的每个球体进行解方程
-            Color ret_color = new Color(0, 0, 0);
+            Color ret_color = new Color(130, 200, 250);
             double t_ret = t_max;
             Sphere sphere_active = null;
 
             sphere_active = ClosestInter(O, d, t_min, t_max, out t_ret);
+
+            if(sphere_active==null || depth==0)
+                return ret_color;
 
             if (t_ret > t_min && t_ret < t_max && sphere_active!=null)
             {
@@ -145,6 +148,13 @@ namespace RayTraceApplication
                 double pointIntensity = 0;
                 Color active_Color = new Color((int)sphere_active.color.X, (int)sphere_active.color.Y, (int)sphere_active.color.Z);
                 ret_color.color = ComputeLighting(P, N, V, (float)sphere_active.specular) * active_Color;
+                float reflection = (float)sphere_active.reflection;
+
+                if (reflection > 0 && reflection <= 1)
+                {
+                    Vector3 ReflectRay = Reflect(N,V);
+                    ret_color.color = (1 - reflection) * ret_color + reflection * TraceRay(P, ReflectRay, 0.001, t_max, depth-1);
+                }
             }
             return ret_color;
         }
@@ -173,7 +183,6 @@ namespace RayTraceApplication
                         Console.BackgroundColor = ConsoleColor.Black;
                     }
                 }
-
             }
 
             Sphere_t = t_ret;

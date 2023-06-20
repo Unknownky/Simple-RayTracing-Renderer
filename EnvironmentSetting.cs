@@ -11,6 +11,7 @@ namespace RayTraceApplication
     {
         public const int Unit = 1;
         public const int PixelPerUnit = 250;
+        public const int Max_depth = 3;
     }
 
     public class Environment
@@ -20,7 +21,7 @@ namespace RayTraceApplication
         {
             spheres[0] = redSphere;
             spheres[1] = blueSphere;
-            spheres[2] = yellowSphere;
+            spheres[2] = greenSphere;
 
             lights[0] = globalLight;
             lights[1] = directionLight;
@@ -43,24 +44,24 @@ namespace RayTraceApplication
         Sphere blueSphere =
             new Sphere()
             {
-                center = new Vector3(5, 2, 7) * LG.Unit,
-                radius = 3 * LG.Unit,
+                center = new Vector3(5, 2, 3) * LG.Unit,
+                radius = 2 * LG.Unit,
                 color = new Vector3(0, 0, 255),
                 specular = 100,
                 reflection = 0.8
             };
 
-        Sphere yellowSphere =
+        Sphere greenSphere =
             new Sphere()
             {
                 center = new Vector3(-6, 2, 10) * LG.Unit,
                 radius = 4 * LG.Unit,
                 color = new Vector3(0, 255, 0),
                 specular = 600,
-                reflection = 0.5
+                reflection = 0.9
             };
 
-        Light globalLight = new GlobalLight() { intensity = 0.2, position = new Vector3(0, 0, 12) * LG.Unit };
+        Light globalLight = new GlobalLight() { intensity = 0.4, position = new Vector3(0, 0, 12) * LG.Unit };
         Light directionLight = new DirectionalLight() { intensity = 0.3, direction = new Vector3(2, -6, 0) * LG.Unit, position = new Vector3(2, 6, 8) * LG.Unit };
         Light pointLight = new PointLight() { intensity = 0.5, position = new Vector3(-3, 7, 7) * LG.Unit };
 
