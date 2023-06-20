@@ -130,7 +130,7 @@ namespace RayTraceApplication
         static Color TraceRay(Vector3 O, Vector3 d, double t_min, double t_max, int depth)//返回自定义的Color结构体
         {//0代表起始点，d代表viewport上的点,t_min代表探测的最小值t*d,t_max代表探测的最大区域
          //对场景中的每个球体进行解方程
-            Color ret_color = new Color(130, 200, 250);
+            Color ret_color = new Color(LG.BACKR, LG.BACKG, LG.BACKB);
             double t_ret = t_max;
             Sphere sphere_active = null;
 
