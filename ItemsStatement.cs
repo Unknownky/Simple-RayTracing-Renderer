@@ -23,7 +23,6 @@ namespace RayTraceApplication
     }
 
     //首先两者必须确保比例一致
-
     public class ViewPort
     {//代表对应ViewPort在坐标系中的长度和宽度的像素的个数
         public int Width { get; }

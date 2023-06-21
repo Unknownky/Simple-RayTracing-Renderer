@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
@@ -19,7 +14,6 @@ namespace RayTraceApplication
 
         static ViewPort viewPort = new ViewPort(canvas);//进行自适应
 
-        static Vector3 Org = new Vector3(0,0,0);//定义坐标原点
 
         //Create the Environment
         static Environment environment = new Environment();
@@ -43,8 +37,6 @@ namespace RayTraceApplication
 
         private static void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
         {
-
-
             int global_t_min = 1;
             int global_t_max = int.MaxValue;
             SolidBrush fillBrush = new SolidBrush(Environment.backgroundColor);
@@ -77,7 +69,7 @@ namespace RayTraceApplication
 
                     Console.WriteLine("On viewPort {0} {1} {2}", viewPoint.X,viewPoint.Y, viewPoint.Z);
 
-                    Color myFillColor = TraceRay(Org, viewPoint,global_t_min,global_t_max, LG.Max_depth);
+                    Color myFillColor = TraceRay(LG.Org, viewPoint,global_t_min,global_t_max, LG.Max_depth);
 
                     int Draw_colorX, Draw_colorY, Draw_colorZ;
                     Draw_colorX = ClampToColor((int)myFillColor.color.X);
@@ -188,9 +180,6 @@ namespace RayTraceApplication
             Sphere_t = t_ret;
             return sphere_active;
         }
-
-
-        //}
 
         //解方程
         static double[] IntersectRaySphere(Vector3 o, Vector3 d,Sphere sphere, double t_min, double t_max)
