@@ -13,6 +13,8 @@ namespace RayTraceApplication
         public const int Total_area = 5;
         public static Vector3 Org = new Vector3(0, 0, 0);//定义坐标原点
         public const float Garmma = 1.1f;
+        public static int HStep = 1;
+        public static int WStep = 1;
     }
 
     public class Environment
