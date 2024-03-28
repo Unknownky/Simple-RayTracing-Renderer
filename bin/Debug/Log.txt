@@ -1,1 +1,11 @@
-Time elapsed: 144948ms
+Time elapsed: 144948ms  145s    
+Time elapsed: 176740ms  176s    
+Time elapsed: 46896ms	46s     
+Time elapsed: 13566ms	13s
+Time elapsed: 15448ms	15s
+
+Time elapsed: 11978ms	11s		8.26068965517241%
+Time elapsed: 11978ms	11s		8.26068965517241%
+Time elapsed: 11978ms	11s		8.26068965517241%
+Time elapsed: 11978ms	11s		8.26068965517241%
+Time elapsed: 17521ms	17s		12.0877832050115%

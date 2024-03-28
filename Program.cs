@@ -21,10 +21,11 @@ namespace RayTraceApplication
         static Stopwatch stopwatch = new Stopwatch(); //创建一个计时器
 
 
-        static Form CanvasForm = new Form() 
-        { 
-            Height = canvas.CanvasHeight * LG.PixelPerUnit, 
-            Width = canvas.CanvasWidth * LG.PixelPerUnit };
+        static Form CanvasForm = new Form()
+        {
+            Height = canvas.CanvasHeight * LG.PixelPerUnit,
+            Width = canvas.CanvasWidth * LG.PixelPerUnit
+        };
 
         static void Main(string[] args)
         {
@@ -47,6 +48,8 @@ namespace RayTraceApplication
             int global_t_max = int.MaxValue;
             SolidBrush fillBrush = new SolidBrush(Environment.backgroundColor);
 
+            System.Drawing.Color fillColor = System.Drawing.Color.FromArgb(255, 0, 0, 0);
+
             //---------------------------------------
 
             //System.Drawing.Color color = System.Drawing.Color.Blue;
@@ -64,22 +67,22 @@ namespace RayTraceApplication
             Rectangle fillRect = new Rectangle(0, 0, 1, 1);//填充的像素点位置
             Vector3 canvasPoint = new Vector3();
             Vector3 viewPoint = new Vector3();
-            Color myFillColor = new Color(0,0,0);
+            Color myFillColor = new Color(0, 0, 0);
 
             //暂时不使用线程
-            for (int x = 0; x < CanvasForm.Width; x++)//填充所有的像素点
+            for (int x = 0; x < CanvasForm.Width; x += 3)//填充所有的像素点
             {
-                for (int y = 0; y < CanvasForm.Height; y++)
+                for (int y = 0; y < CanvasForm.Height; y += 3)
                 {
 
                     //Console.WriteLine("On canvas:{0} {1} {2}",x,y, canvas.CanvasDistance);
-                    canvasPoint = FaceToCanvas(x,y,0);//0代表在canvas上
+                    canvasPoint = FaceToCanvas(x, y, 0);//0代表在canvas上
 
-                    viewPoint = CanvasToViewPort(canvasPoint.X,canvasPoint.Y, canvasPoint.Z);//先作为正的Z值
+                    viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);//先作为正的Z值
 
-                    Console.WriteLine("On viewPort {0} {1} {2}", viewPoint.X,viewPoint.Y, viewPoint.Z);
+                    Console.WriteLine("On viewPort {0} {1} {2}", viewPoint.X, viewPoint.Y, viewPoint.Z);
 
-                    myFillColor = TraceRay(LG.Org, viewPoint,global_t_min,global_t_max, LG.Max_depth);
+                    myFillColor = TraceRay(LG.Org, viewPoint, global_t_min, global_t_max, LG.Max_depth);
 
                     int Draw_colorX, Draw_colorY, Draw_colorZ;
                     Draw_colorX = (int)myFillColor.color.X;
@@ -92,18 +95,34 @@ namespace RayTraceApplication
                     Draw_colorZ = ClampToColor(Draw_colorZ);
 
                     Console.WriteLine("The result of the TraceRay is{0} {1} {2}", Draw_colorX, Draw_colorY, Draw_colorZ);
-                    System.Drawing.Color fillColor = System.Drawing.Color.FromArgb(255,Draw_colorX, Draw_colorY, Draw_colorZ);
+                    fillColor = System.Drawing.Color.FromArgb(255, Draw_colorX, Draw_colorY, Draw_colorZ);
                     fillRect.X = x;
                     fillRect.Y = y;
-                    Console.WriteLine("On face {0} {1}",x,y);
-                    
+                    Console.WriteLine("On face {0} {1}", x, y);
+
                     fillBrush.Color = fillColor;//仅仅改变颜色值，避免创造对象影响性能
                     e.Graphics.FillRectangle(fillBrush, fillRect);
                 }
             }
             stopwatch.Stop();
             //把时间附加输出到当前文件夹中的Log.txt文件中
-            System.IO.File.AppendAllText("Log.txt", "Time elapsed: " + stopwatch.ElapsedMilliseconds + "ms" + stopwatch.ElapsedMilliseconds/1000 + "s" + '\n');
+            System.IO.File.AppendAllText("Log.txt", "Time elapsed: " + stopwatch.ElapsedMilliseconds + "ms\t" + stopwatch.ElapsedMilliseconds / 1000 + "s\t\t");
+
+            if (System.IO.File.ReadAllLines("Log.txt").Length > 0)
+            {
+                //获取Log.txt文件中第一行的"Time elapsed: " + stopwatch.ElapsedMilliseconds + "ms\t" + stopwatch.ElapsedMilliseconds/1000 + "s\t\t的stopwatch.ElapsedMilliseconds/1000然后计算好当前的stopwatch.ElapsedMilliseconds/1000占比
+
+                string firstLine = System.IO.File.ReadLines("Log.txt").First();
+                string[] parts = firstLine.Split(':');
+                string[] times = parts[1].Split('m');
+                string timeElapsed = times[0];
+                int mil = int.Parse(timeElapsed.Substring(1, timeElapsed.Length - 1));
+
+                double percentage = (double)stopwatch.ElapsedMilliseconds / mil * 100;
+                System.IO.File.AppendAllText("Log.txt", percentage + "%\n");
+
+            }
+
         }
 
         static void GarmmaFixed(ref int X, ref int Y, ref int Z)
@@ -121,14 +140,14 @@ namespace RayTraceApplication
             {
                 return num;
             }
-            if(num>Max) return Max;
+            if (num > Max) return Max;
             return Min;
         }
 
         static Vector3 FaceToCanvas(double Face_x, double Face_y, double Face_z)
         {
-            float Canvas_x = (float)Face_x / LG.PixelPerUnit - ((float)canvas.CanvasWidth)/2;
-            float Canvas_y = -(float)Face_y / LG.PixelPerUnit + ((float)canvas.CanvasHeight)/2;
+            float Canvas_x = (float)Face_x / LG.PixelPerUnit - ((float)canvas.CanvasWidth) / 2;
+            float Canvas_y = -(float)Face_y / LG.PixelPerUnit + ((float)canvas.CanvasHeight) / 2;
             float Canvas_z = (float)Face_z / LG.PixelPerUnit + canvas.CanvasDistance;
 
             return new Vector3(Canvas_x, Canvas_y, Canvas_z);
@@ -137,9 +156,9 @@ namespace RayTraceApplication
         static Vector3 CanvasToViewPort(float vx, float vy, float vz)
         {
             float x, y, z;
-            x = vx * viewPort.Width/canvas.CanvasWidth;
-            y = vy * viewPort.Height/canvas.CanvasHeight;
-            z = vz* viewPort.distance/canvas.CanvasDistance;
+            x = vx * viewPort.Width / canvas.CanvasWidth;
+            y = vy * viewPort.Height / canvas.CanvasHeight;
+            z = vz * viewPort.distance / canvas.CanvasDistance;
             return new Vector3(x, y, z);
         }
 
@@ -152,14 +171,14 @@ namespace RayTraceApplication
 
             sphere_active = ClosestInter(O, d, t_min, t_max, out t_ret);
 
-            if(sphere_active==null || depth==0)
+            if (sphere_active == null || depth == 0)
                 return ret_color;
 
-            if (t_ret > t_min && t_ret < t_max && sphere_active!=null)
+            if (t_ret > t_min && t_ret < t_max && sphere_active != null)
             {
                 Vector3 P = O + d * new Vector3((float)t_ret, (float)t_ret, (float)t_ret);
                 Vector3 V = O - P;
-                Vector3 N = (P - sphere_active.center)/sphere_active.radius;
+                Vector3 N = (P - sphere_active.center) / sphere_active.radius;
 
                 double pointIntensity = 0;
                 Color active_Color = new Color((int)sphere_active.color.X, (int)sphere_active.color.Y, (int)sphere_active.color.Z);
@@ -168,8 +187,8 @@ namespace RayTraceApplication
 
                 if (reflection > 0 && reflection <= 1)
                 {
-                    Vector3 ReflectRay = Reflect(N,V);
-                    ret_color.color = (1 - reflection) * ret_color + reflection * TraceRay(P, ReflectRay, 0.001, t_max, depth-1);
+                    Vector3 ReflectRay = Reflect(N, V);
+                    ret_color.color = (1 - reflection) * ret_color + reflection * TraceRay(P, ReflectRay, 0.001, t_max, depth - 1);
                 }
             }
             return ret_color;
@@ -206,21 +225,21 @@ namespace RayTraceApplication
         }
 
         //解方程
-        static double[] IntersectRaySphere(Vector3 o, Vector3 d,Sphere sphere, double t_min, double t_max)
+        static double[] IntersectRaySphere(Vector3 o, Vector3 d, Sphere sphere, double t_min, double t_max)
         {
             double t1 = t_max, t2 = t_max;
 
-            double a = Vector3.Dot(d,d);
-            double b = 2 * Vector3.Dot(d,-sphere.center);
-            double c = Vector3.Dot(-sphere.center,-sphere.center)- Math.Pow(sphere.radius,2);
+            double a = Vector3.Dot(d, d);
+            double b = 2 * Vector3.Dot(d, -sphere.center);
+            double c = Vector3.Dot(-sphere.center, -sphere.center) - Math.Pow(sphere.radius, 2);
 
             double sq = b * b - 4 * a * c;
-            if(sq>0)
+            if (sq > 0)
             {
                 t1 = (-b - Math.Sqrt(sq)) / (2 * a);
                 t2 = (-b + Math.Sqrt(sq)) / (2 * a);
             }
-            return new double[] { t1,t2};
+            return new double[] { t1, t2 };
         }
 
         static double ComputeLighting(Vector3 P, Vector3 N, Vector3 V, float S)
@@ -230,18 +249,18 @@ namespace RayTraceApplication
             double t_max = double.MaxValue;//用来检测阴影
             foreach (Light light in environment.lights)
             {
-                if(light.type == "Global")
+                if (light.type == "Global")
                 {
-                    i+=light.intensity;
+                    i += light.intensity;
                 }
                 else
                 {
-                    if(light.type == "Point")
+                    if (light.type == "Point")
                     {
                         L = light.position - P;
                         t_max = 1;
                     }
-                    else if(light.type == "Direction")
+                    else if (light.type == "Direction")
                     {
                         object o = light;//使用装箱操作,也可以使用动态绑定,都是在运行时使用的
                         DirectionalLight direc = (DirectionalLight)o;
@@ -260,14 +279,14 @@ namespace RayTraceApplication
 
 
                     //漫反射计算
-                    double n_dot_l = Vector3.Dot(L,N);
+                    double n_dot_l = Vector3.Dot(L, N);
                     if (n_dot_l > 0)
-                        i += light.intensity * n_dot_l /(Length(N)*Length(L)) ;
+                        i += light.intensity * n_dot_l / (Length(N) * Length(L));
 
                     //镜面反射计算
-                    if(S>-1)
+                    if (S > -1)
                     {
-                        Vector3 R = Reflect(N,L);
+                        Vector3 R = Reflect(N, L);
                         double r_dot_v = Vector3.Dot(R, V);
                         if (r_dot_v > 0)
                         {
