@@ -5,4 +5,3 @@ D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Debug\RayTraceApplication.c
 D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Debug\RayTraceApplication.exe
 D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Debug\RayTraceApplication.pdb
 D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Debug\RayTraceApplication.csproj.AssemblyReference.cache
-D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Debug\RayTraceApplication.csproj.SuggestedBindingRedirects.cache

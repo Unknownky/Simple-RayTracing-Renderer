@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace RayTraceApplication
 {
@@ -17,7 +12,7 @@ namespace RayTraceApplication
         public const int BACKB = 0;
         public const int Total_area = 5;
         public static Vector3 Org = new Vector3(0, 0, 0);//定义坐标原点
-
+        public const float Garmma = 1.1f;
     }
 
     public class Environment

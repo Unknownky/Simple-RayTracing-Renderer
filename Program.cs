@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Net.Security;
 using System.Numerics;
 using System.Windows.Forms;
-
 
 namespace RayTraceApplication
 {
@@ -14,19 +15,24 @@ namespace RayTraceApplication
 
         static ViewPort viewPort = new ViewPort(canvas);//进行自适应
 
-
         //Create the Environment
         static Environment environment = new Environment();
 
-        static Form CanvasForm = new Form() 
-        { Height = canvas.CanvasHeight * LG.PixelPerUnit, 
-            Width = canvas.CanvasWidth * LG.PixelPerUnit };
+        static Stopwatch stopwatch = new Stopwatch(); //创建一个计时器
 
+
+        static Form CanvasForm = new Form() 
+        { 
+            Height = canvas.CanvasHeight * LG.PixelPerUnit, 
+            Width = canvas.CanvasWidth * LG.PixelPerUnit };
 
         static void Main(string[] args)
         {
 
             CanvasForm.Text = "简易光线追踪渲染器";
+
+            //开始计时 
+            stopwatch.Start();
 
             CanvasForm.Paint += CanvasForm_Paint;//该事件处理器中进行绘制
 
@@ -55,6 +61,10 @@ namespace RayTraceApplication
             //e.Graphics.FillRectangle(blueBrush, rect);
 
             //--------------------------------------
+            Rectangle fillRect = new Rectangle(0, 0, 1, 1);//填充的像素点位置
+            Vector3 canvasPoint = new Vector3();
+            Vector3 viewPoint = new Vector3();
+            Color myFillColor = new Color(0,0,0);
 
             //暂时不使用线程
             for (int x = 0; x < CanvasForm.Width; x++)//填充所有的像素点
@@ -63,29 +73,44 @@ namespace RayTraceApplication
                 {
 
                     //Console.WriteLine("On canvas:{0} {1} {2}",x,y, canvas.CanvasDistance);
-                    Vector3 canvasPoint = FaceToCanvas(x,y,0);//0代表在canvas上
+                    canvasPoint = FaceToCanvas(x,y,0);//0代表在canvas上
 
-                    Vector3 viewPoint = CanvasToViewPort(canvasPoint.X,canvasPoint.Y, canvasPoint.Z);//先作为正的Z值
+                    viewPoint = CanvasToViewPort(canvasPoint.X,canvasPoint.Y, canvasPoint.Z);//先作为正的Z值
 
                     Console.WriteLine("On viewPort {0} {1} {2}", viewPoint.X,viewPoint.Y, viewPoint.Z);
 
-                    Color myFillColor = TraceRay(LG.Org, viewPoint,global_t_min,global_t_max, LG.Max_depth);
+                    myFillColor = TraceRay(LG.Org, viewPoint,global_t_min,global_t_max, LG.Max_depth);
 
                     int Draw_colorX, Draw_colorY, Draw_colorZ;
-                    Draw_colorX = ClampToColor((int)myFillColor.color.X);
-                    Draw_colorY = ClampToColor((int)myFillColor.color.Y);
-                    Draw_colorZ = ClampToColor((int)myFillColor.color.Z);
+                    Draw_colorX = (int)myFillColor.color.X;
+                    Draw_colorY = (int)myFillColor.color.Y;
+                    Draw_colorZ = (int)myFillColor.color.Z;
+                    GarmmaFixed(ref Draw_colorX, ref Draw_colorY, ref Draw_colorZ);
 
+                    Draw_colorX = ClampToColor(Draw_colorX);
+                    Draw_colorY = ClampToColor(Draw_colorY);
+                    Draw_colorZ = ClampToColor(Draw_colorZ);
 
                     Console.WriteLine("The result of the TraceRay is{0} {1} {2}", Draw_colorX, Draw_colorY, Draw_colorZ);
                     System.Drawing.Color fillColor = System.Drawing.Color.FromArgb(255,Draw_colorX, Draw_colorY, Draw_colorZ);
-
+                    fillRect.X = x;
+                    fillRect.Y = y;
                     Console.WriteLine("On face {0} {1}",x,y);
+                    
                     fillBrush.Color = fillColor;//仅仅改变颜色值，避免创造对象影响性能
-                    Rectangle fillRect = new Rectangle(x, y, 1, 1);//填充的像素点位置
                     e.Graphics.FillRectangle(fillBrush, fillRect);
                 }
             }
+            stopwatch.Stop();
+            //把时间附加输出到当前文件夹中的Log.txt文件中
+            System.IO.File.AppendAllText("Log.txt", "Time elapsed: " + stopwatch.ElapsedMilliseconds + "ms" + stopwatch.ElapsedMilliseconds/1000 + "s" + '\n');
+        }
+
+        static void GarmmaFixed(ref int X, ref int Y, ref int Z)
+        {
+            X = (int)Math.Pow(X, LG.Garmma);
+            Y = (int)Math.Pow(Y, LG.Garmma);
+            Z = (int)Math.Pow(Z, LG.Garmma);
         }
 
         static int ClampToColor(int num)
@@ -99,7 +124,6 @@ namespace RayTraceApplication
             if(num>Max) return Max;
             return Min;
         }
-
 
         static Vector3 FaceToCanvas(double Face_x, double Face_y, double Face_z)
         {
