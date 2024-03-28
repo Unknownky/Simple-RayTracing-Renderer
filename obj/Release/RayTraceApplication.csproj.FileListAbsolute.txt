@@ -1,0 +1,7 @@
+D:\PC\C#\RayTraceApplication\RayTraceApplication\bin\Release\RayTraceApplication.exe.config
+D:\PC\C#\RayTraceApplication\RayTraceApplication\bin\Release\RayTraceApplication.exe
+D:\PC\C#\RayTraceApplication\RayTraceApplication\bin\Release\RayTraceApplication.pdb
+D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Release\RayTraceApplication.csproj.AssemblyReference.cache
+D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Release\RayTraceApplication.csproj.CoreCompileInputs.cache
+D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Release\RayTraceApplication.exe
+D:\PC\C#\RayTraceApplication\RayTraceApplication\obj\Release\RayTraceApplication.pdb

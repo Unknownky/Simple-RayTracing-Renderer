@@ -1,15 +1,17 @@
-
 using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace RayTraceApplication
 {
     public class RayTrace
     {
+        public static RayTrace instance { get; private set; } = new RayTrace();
+
         //在program中创建(可以定义)相机与视口
         static Canvas canvas = new Canvas();
 
@@ -20,6 +22,7 @@ namespace RayTraceApplication
 
         public static Stopwatch stopwatch = new Stopwatch(); //创建一个计时器
 
+        public static string logFilepath = "Log.txt";
 
         public static Form CanvasForm = new Form()
         {
@@ -28,33 +31,101 @@ namespace RayTraceApplication
         };
 
 
-        public static void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
+        int global_t_min = 1;
+        int global_t_max = int.MaxValue;
+        SolidBrush fillBrush = new SolidBrush(Environment.backgroundColor);
+
+        System.Drawing.Color fillColor = System.Drawing.Color.FromArgb(255, 0, 0, 0);
+
+        //---------------------------------------
+
+        //System.Drawing.Color color = System.Drawing.Color.Blue;
+        //// Create solid brush.
+        //SolidBrush blueBrush = new SolidBrush(color);
+        //SolidBrush blackBrush = new SolidBrush(Environment.backgroundColor);
+
+        //// Create rectangle.
+        //Rectangle rect = new Rectangle(0, 0, 1, 1);//单一像素矩形;x,y像素位置;
+
+        //// Fill rectangle to screen.
+        //e.Graphics.FillRectangle(blueBrush, rect);
+
+        //--------------------------------------
+        Rectangle fillRect = new Rectangle(0, 0, 1, 1);//填充的像素点位置
+        Vector3 canvasPoint = new Vector3();
+        Vector3 viewPoint = new Vector3();
+        Color myFillColor = new Color(0, 0, 0);
+
+        //多线程光线追踪
+        int numThreads = 16; // 定义线程数量
+
+        public void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
         {
-            int global_t_min = 1;
-            int global_t_max = int.MaxValue;
-            SolidBrush fillBrush = new SolidBrush(Environment.backgroundColor);
+            //单线程光线追踪
+            // SingleThreadTraceRay(e);
+            //多线程光线追踪
+            MultiThreadTraceRay(e);
+            //结束计时
+            stopwatch.Stop();
+            //把时间附加输出到当前文件夹中的Log.txt文件中
+            WriteResultToFile();
+        }
 
-            System.Drawing.Color fillColor = System.Drawing.Color.FromArgb(255, 0, 0, 0);
+        private void MultiThreadTraceRay(PaintEventArgs e)
+        {
+            // 使用多线程进行光线追踪
+            int width = CanvasForm.Width;
+            int height = CanvasForm.Height;
+            int stepX = LG.WStep;
+            int stepY = LG.HStep;
 
-            //---------------------------------------
+            // 创建线程数组
+            Thread[] threads = new Thread[numThreads];
 
-            //System.Drawing.Color color = System.Drawing.Color.Blue;
-            //// Create solid brush.
-            //SolidBrush blueBrush = new SolidBrush(color);
-            //SolidBrush blackBrush = new SolidBrush(Environment.backgroundColor);
+            for (int i = 0; i < numThreads; i++)
+            {
+                int threadIndex = i; // 保存线程索引
 
-            //// Create rectangle.
-            //Rectangle rect = new Rectangle(0, 0, 1, 1);//单一像素矩形;x,y像素位置;
+                threads[i] = new Thread(() =>
+                {
+                    for (int x = threadIndex; x < width; x += numThreads)
+                    {
+                        for (int y = 0; y < height; y += stepY)
+                        {
+                            // 光线追踪逻辑
+                            canvasPoint = FaceToCanvas(x, y, 0);
+                            viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);
+                            myFillColor = TraceRay(LG.Org, viewPoint, global_t_min, global_t_max, LG.Max_depth);
 
-            //// Fill rectangle to screen.
-            //e.Graphics.FillRectangle(blueBrush, rect);
+                            int Draw_colorX, Draw_colorY, Draw_colorZ;
+                            Draw_colorX = (int)myFillColor.color.X;
+                            Draw_colorY = (int)myFillColor.color.Y;
+                            Draw_colorZ = (int)myFillColor.color.Z;
+                            GarmmaFixed(ref Draw_colorX, ref Draw_colorY, ref Draw_colorZ);
+                            Draw_colorX = ClampToColor(Draw_colorX);
 
-            //--------------------------------------
-            Rectangle fillRect = new Rectangle(0, 0, 1, 1);//填充的像素点位置
-            Vector3 canvasPoint = new Vector3();
-            Vector3 viewPoint = new Vector3();
-            Color myFillColor = new Color(0, 0, 0);
+                            // 绘制像素点
+                            lock (e)
+                            {
+                                e.Graphics.FillRectangle(new SolidBrush(System.Drawing.Color.FromArgb(Draw_colorX, Draw_colorY, Draw_colorZ)), x, y, stepX, stepY);
+                            }
+                        }
+                    }
+                });
 
+                threads[i].Start(); // 启动线程
+            }
+
+            // 等待所有线程完成
+            foreach (Thread thread in threads)
+            {
+                thread.Join();
+            }
+        }
+
+
+        private void SingleThreadTraceRay(PaintEventArgs e)
+        {
             //暂时不使用线程
             for (int x = 0; x < CanvasForm.Width; x += LG.WStep)//填充所有的像素点
             {
@@ -90,25 +161,26 @@ namespace RayTraceApplication
                     e.Graphics.FillRectangle(fillBrush, fillRect);
                 }
             }
-            stopwatch.Stop();
-            //把时间附加输出到当前文件夹中的Log.txt文件中
-            System.IO.File.AppendAllText("Log.txt", "Time elapsed: " + stopwatch.ElapsedMilliseconds + "ms\t" + stopwatch.ElapsedMilliseconds / 1000 + "s\t\t");
+        }
 
-            if (System.IO.File.ReadAllLines("Log.txt").Length > 0)
+        private static void WriteResultToFile()
+        {
+            //把时间附加输出到当前文件夹中的Log.txt文件中
+            System.IO.File.AppendAllText(logFilepath, "Time elapsed: " + stopwatch.ElapsedMilliseconds + "ms\t" + stopwatch.ElapsedMilliseconds / 1000 + "s\t\t");
+
+            if (System.IO.File.ReadAllLines(logFilepath).Length > 0)
             {
                 //获取Log.txt文件中第一行的"Time elapsed: " + stopwatch.ElapsedMilliseconds + "ms\t" + stopwatch.ElapsedMilliseconds/1000 + "s\t\t的stopwatch.ElapsedMilliseconds/1000然后计算好当前的stopwatch.ElapsedMilliseconds/1000占比
 
-                string firstLine = System.IO.File.ReadLines("Log.txt").First();
+                string firstLine = System.IO.File.ReadLines(logFilepath).First();
                 string[] parts = firstLine.Split(':');
                 string[] times = parts[1].Split('m');
                 string timeElapsed = times[0];
                 int mil = int.Parse(timeElapsed.Substring(1, timeElapsed.Length - 1));
 
                 double percentage = (double)stopwatch.ElapsedMilliseconds / mil * 100;
-                System.IO.File.AppendAllText("Log.txt", percentage + "%\n");
-
+                System.IO.File.AppendAllText(logFilepath, percentage + "%\n");
             }
-
         }
 
         static void GarmmaFixed(ref int X, ref int Y, ref int Z)

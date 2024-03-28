@@ -12,7 +12,7 @@ namespace RayTraceApplication
             //开始计时 
             RayTrace.stopwatch.Start();
 
-            RayTrace.CanvasForm.Paint += RayTrace.CanvasForm_Paint;//该事件处理器中进行绘制
+            RayTrace.CanvasForm.Paint += RayTrace.instance.CanvasForm_Paint;//该事件处理器中进行绘制
 
             RayTrace.CanvasForm.ShowDialog();
 
