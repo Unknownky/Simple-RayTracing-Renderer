@@ -1,13 +1,24 @@
 ﻿using System;
+using System.Collections.Concurrent;
 
 namespace RayTraceApplication
 {
     class Program
     {
+        public static bool isLoop = true;
+
+        public static bool isMultiThread = true;
+        private static int loopCount = 8;
         static void Main(string[] args)
         {
-            SingleRayTrace();
-
+            if(isLoop)
+            {
+                LoopRayTrace();
+            }
+            else
+            {
+                SingleRayTrace();
+            }
         }
 
         private static void SingleRayTrace()
@@ -21,11 +32,16 @@ namespace RayTraceApplication
 
             RayTrace.CanvasForm.ShowDialog();
 
-            Console.ReadLine();
         }
 
-        
-
+        //循环进行光纤追踪计算，用来测量数据
+        private static void LoopRayTrace()
+        {
+            for (int i = 0; i < loopCount; i++)
+            {
+                SingleRayTrace();
+            }
+            isLoop = false;
+        }
     }
-
 }

@@ -61,10 +61,16 @@ namespace RayTraceApplication
 
         public void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
         {
-            //单线程光线追踪
-            // SingleThreadTraceRay(e);
-            //多线程光线追踪
-            MultiThreadTraceRay(e);
+            if (Program.isMultiThread)
+            {
+                //多线程光线追踪
+                MultiThreadTraceRay(e);
+            }
+            else
+            {
+                //单线程光线追踪
+                SingleThreadTraceRay(e);
+            }
             //结束计时
             stopwatch.Stop();
             //把时间附加输出到当前文件夹中的Log.txt文件中
@@ -120,6 +126,18 @@ namespace RayTraceApplication
             foreach (Thread thread in threads)
             {
                 thread.Join();
+            }
+
+            // 释放线程资源
+            foreach (Thread thread in threads)
+            {
+                thread.Abort();
+            }
+
+            if (Program.isLoop)
+            {
+                // 重绘窗体
+                CanvasForm.Invalidate();
             }
         }
 
