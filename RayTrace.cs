@@ -22,7 +22,7 @@ namespace RayTraceApplication
 
         public static Stopwatch stopwatch = new Stopwatch(); //创建一个计时器
 
-        public static string logFilepath = "Log.txt";
+        public static readonly string logFilepath = "Log.txt";
 
         public static Form CanvasForm = new Form()
         {
@@ -57,7 +57,9 @@ namespace RayTraceApplication
         Color myFillColor = new Color(0, 0, 0);
 
         //多线程光线追踪
-        int numThreads = 4; // 定义线程数量
+        readonly int numThreads = 4; // 定义线程数量
+ 
+        readonly int alpha = 255;
 
         public void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
         {
@@ -113,9 +115,11 @@ namespace RayTraceApplication
                                 Draw_colorZ = (int)myFillColor.color.Z;
                                 GarmmaFixed(ref Draw_colorX, ref Draw_colorY, ref Draw_colorZ);
                                 Draw_colorX = ClampToColor(Draw_colorX);
+                                Draw_colorY = ClampToColor(Draw_colorY);
+                                Draw_colorZ = ClampToColor(Draw_colorZ);
 
                                 // 在位图上绘制像素点
-                                g.FillRectangle(new SolidBrush(System.Drawing.Color.FromArgb(Draw_colorX, Draw_colorY, Draw_colorZ)), x, y, stepX, stepY);
+                                g.FillRectangle(new SolidBrush(System.Drawing.Color.FromArgb(alpha, Draw_colorX, Draw_colorY, Draw_colorZ)), x, y, stepX, stepY);
                             }
                         }
                     }

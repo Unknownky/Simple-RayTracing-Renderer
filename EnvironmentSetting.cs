@@ -8,9 +8,9 @@ namespace RayTraceApplication
         public const int Unit = 1;
         public const int PixelPerUnit = 250;
         public const int Max_depth = 3;
-        public const int BACKR = 0;
-        public const int BACKG = 0;
-        public const int BACKB = 0;
+        public const int BACKR = 45;
+        public const int BACKG = 45;
+        public const int BACKB = 45;
         public const int Total_area = 5;
         public static Vector3 Org = new Vector3(0, 0, 0);//定义坐标原点
         public const float Garmma = 1.1f;

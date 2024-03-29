@@ -3,7 +3,7 @@ namespace RayTraceApplication
 {
     class Program
     {
-        public static bool isLoop = true;
+        public static bool isLoop = false;
 
         public static bool isMultiThread = true;
         private static int loopCount = 2;
