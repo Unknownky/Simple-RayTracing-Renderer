@@ -57,7 +57,7 @@ namespace RayTraceApplication
         Color myFillColor = new Color(0, 0, 0);
 
         //多线程光线追踪
-        int numThreads = 1; // 定义线程数量
+        int numThreads = 4; // 定义线程数量
 
         public void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
         {
@@ -85,35 +85,37 @@ namespace RayTraceApplication
             int stepX = LG.WStep;
             int stepY = LG.HStep;
 
-            // 创建线程数组
+            // 创建线程数组和位图数组
             Thread[] threads = new Thread[numThreads];
+            Bitmap[] bitmaps = new Bitmap[numThreads];
 
             for (int i = 0; i < numThreads; i++)
             {
                 int threadIndex = i; // 保存线程索引
+                bitmaps[i] = new Bitmap(width, height);
 
                 threads[i] = new Thread(() =>
                 {
-                    for (int x = threadIndex; x < width; x += numThreads)
+                    using (Graphics g = Graphics.FromImage(bitmaps[threadIndex]))
                     {
-                        for (int y = 0; y < height; y += stepY)
+                        for (int x = threadIndex; x < width; x += numThreads)
                         {
-                            // 光线追踪逻辑
-                            canvasPoint = FaceToCanvas(x, y, 0);
-                            viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);
-                            myFillColor = TraceRay(LG.Org, viewPoint, global_t_min, global_t_max, LG.Max_depth);
-
-                            int Draw_colorX, Draw_colorY, Draw_colorZ;
-                            Draw_colorX = (int)myFillColor.color.X;
-                            Draw_colorY = (int)myFillColor.color.Y;
-                            Draw_colorZ = (int)myFillColor.color.Z;
-                            GarmmaFixed(ref Draw_colorX, ref Draw_colorY, ref Draw_colorZ);
-                            Draw_colorX = ClampToColor(Draw_colorX);
-
-                            // 绘制像素点
-                            lock (e)
+                            for (int y = 0; y < height; y += stepY)
                             {
-                                e.Graphics.FillRectangle(new SolidBrush(System.Drawing.Color.FromArgb(Draw_colorX, Draw_colorY, Draw_colorZ)), x, y, stepX, stepY);
+                                // 光线追踪逻辑
+                                canvasPoint = FaceToCanvas(x, y, 0);
+                                viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);
+                                myFillColor = TraceRay(LG.Org, viewPoint, global_t_min, global_t_max, LG.Max_depth);
+
+                                int Draw_colorX, Draw_colorY, Draw_colorZ;
+                                Draw_colorX = (int)myFillColor.color.X;
+                                Draw_colorY = (int)myFillColor.color.Y;
+                                Draw_colorZ = (int)myFillColor.color.Z;
+                                GarmmaFixed(ref Draw_colorX, ref Draw_colorY, ref Draw_colorZ);
+                                Draw_colorX = ClampToColor(Draw_colorX);
+
+                                // 在位图上绘制像素点
+                                g.FillRectangle(new SolidBrush(System.Drawing.Color.FromArgb(Draw_colorX, Draw_colorY, Draw_colorZ)), x, y, stepX, stepY);
                             }
                         }
                     }
@@ -128,6 +130,13 @@ namespace RayTraceApplication
                 thread.Join();
             }
 
+            // 在主画布上绘制位图
+            foreach (Bitmap bitmap in bitmaps)
+            {
+                e.Graphics.DrawImageUnscaled(bitmap, 0, 0);
+                bitmap.Dispose(); // 释放位图资源
+            }
+
             // 释放线程资源
             foreach (Thread thread in threads)
             {
@@ -140,7 +149,6 @@ namespace RayTraceApplication
                 CanvasForm.Invalidate();
             }
         }
-
 
         private void SingleThreadTraceRay(PaintEventArgs e)
         {
@@ -371,9 +379,4 @@ namespace RayTraceApplication
         }
     }
 }
-
-
-
-
-
 
