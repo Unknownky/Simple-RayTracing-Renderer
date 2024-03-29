@@ -8,7 +8,7 @@ namespace RayTraceApplication
         public static bool isLoop = true;
 
         public static bool isMultiThread = true;
-        private static int loopCount = 8;
+        private static int loopCount = 2;
         static void Main(string[] args)
         {
             if(isLoop)

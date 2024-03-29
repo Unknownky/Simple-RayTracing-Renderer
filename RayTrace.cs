@@ -57,7 +57,7 @@ namespace RayTraceApplication
         Color myFillColor = new Color(0, 0, 0);
 
         //多线程光线追踪
-        int numThreads = 16; // 定义线程数量
+        int numThreads = 1; // 定义线程数量
 
         public void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
         {
@@ -149,33 +149,25 @@ namespace RayTraceApplication
             {
                 for (int y = 0; y < CanvasForm.Height; y += LG.HStep)
                 {
-
-                    //Console.WriteLine("On canvas:{0} {1} {2}",x,y, canvas.CanvasDistance);
                     canvasPoint = FaceToCanvas(x, y, 0);//0代表在canvas上
-
                     viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);//先作为正的Z值
-
-                    Console.WriteLine("On viewPort {0} {1} {2}", viewPoint.X, viewPoint.Y, viewPoint.Z);
 
                     myFillColor = TraceRay(LG.Org, viewPoint, global_t_min, global_t_max, LG.Max_depth);
 
-                    int Draw_colorX, Draw_colorY, Draw_colorZ;
-                    Draw_colorX = (int)myFillColor.color.X;
-                    Draw_colorY = (int)myFillColor.color.Y;
-                    Draw_colorZ = (int)myFillColor.color.Z;
+                    int Draw_colorX = (int)myFillColor.color.X;
+                    int Draw_colorY = (int)myFillColor.color.Y;
+                    int Draw_colorZ = (int)myFillColor.color.Z;
                     GarmmaFixed(ref Draw_colorX, ref Draw_colorY, ref Draw_colorZ);
 
                     Draw_colorX = ClampToColor(Draw_colorX);
                     Draw_colorY = ClampToColor(Draw_colorY);
                     Draw_colorZ = ClampToColor(Draw_colorZ);
 
-                    Console.WriteLine("The result of the TraceRay is{0} {1} {2}", Draw_colorX, Draw_colorY, Draw_colorZ);
                     fillColor = System.Drawing.Color.FromArgb(255, Draw_colorX, Draw_colorY, Draw_colorZ);
                     fillRect.X = x;
                     fillRect.Y = y;
-                    Console.WriteLine("On face {0} {1}", x, y);
 
-                    fillBrush.Color = fillColor;//仅仅改变颜色值，避免创造对象影响性能
+                    fillBrush.Color = fillColor;
                     e.Graphics.FillRectangle(fillBrush, fillRect);
                 }
             }
@@ -210,31 +202,30 @@ namespace RayTraceApplication
 
         static int ClampToColor(int num)
         {
-            int Max = 255;
-            int Min = 0;
-            if (num >= Min && num <= Max)
-            {
-                return num;
-            }
-            if (num > Max) return Max;
-            return Min;
+            return num < 0 ? 0 : (num > 255 ? 255 : num); // Custom implementation to clamp the value between 0 and 255
         }
+
+        //Tag:优化部分
+        static readonly float invPixelPerUnit = 1.0f / LG.PixelPerUnit;
+        static readonly float invCanvasWidth = 1.0f / canvas.CanvasWidth;
+        static readonly float invCanvasHeight = 1.0f / canvas.CanvasHeight;
+        static readonly float invCanvasDistance = 1.0f / canvas.CanvasDistance;
 
         static Vector3 FaceToCanvas(double Face_x, double Face_y, double Face_z)
         {
-            float Canvas_x = (float)Face_x / LG.PixelPerUnit - ((float)canvas.CanvasWidth) / 2;
-            float Canvas_y = -(float)Face_y / LG.PixelPerUnit + ((float)canvas.CanvasHeight) / 2;
-            float Canvas_z = (float)Face_z / LG.PixelPerUnit + canvas.CanvasDistance;
+            float Canvas_x = (float)Face_x * invPixelPerUnit - canvas.CanvasWidth * 0.5f;
+            float Canvas_y = -(float)Face_y * invPixelPerUnit + canvas.CanvasHeight * 0.5f;
+            float Canvas_z = (float)Face_z * invPixelPerUnit + canvas.CanvasDistance;
 
             return new Vector3(Canvas_x, Canvas_y, Canvas_z);
         }
 
         static Vector3 CanvasToViewPort(float vx, float vy, float vz)
         {
-            float x, y, z;
-            x = vx * viewPort.Width / canvas.CanvasWidth;
-            y = vy * viewPort.Height / canvas.CanvasHeight;
-            z = vz * viewPort.distance / canvas.CanvasDistance;
+            float x = vx * viewPort.Width * invCanvasWidth;
+            float y = vy * viewPort.Height * invCanvasHeight;
+            float z = vz * viewPort.distance * invCanvasDistance;
+
             return new Vector3(x, y, z);
         }
 
@@ -289,9 +280,9 @@ namespace RayTraceApplication
                     {
                         t_ret = t_active;
                         sphere_active = sphere;
-                        Console.BackgroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Find a Sphere!!!!!!!!!!!!!!!!!!!!!!!!!");
-                        Console.BackgroundColor = ConsoleColor.Black;
+                        // Console.BackgroundColor = ConsoleColor.Red;
+                        // Console.WriteLine("Find a Sphere!!!!!!!!!!!!!!!!!!!!!!!!!");
+                        // Console.BackgroundColor = ConsoleColor.Black;
                     }
                 }
             }
