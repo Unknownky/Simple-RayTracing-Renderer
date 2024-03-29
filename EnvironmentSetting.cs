@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 
 namespace RayTraceApplication
 {
@@ -40,6 +41,7 @@ namespace RayTraceApplication
             {
                 center = new Vector3(0, -4, 8)*LG.Unit,
                 radius = 2 * LG.Unit,
+                radius_square = (float)Math.Pow(2 * LG.Unit, 2),
                 color = new Vector3(255, 0, 0),
                 specular = 200,
                 reflection = 0.4
@@ -50,6 +52,7 @@ namespace RayTraceApplication
             {
                 center = new Vector3(0, 3, 6)*LG.Unit,
                 radius = 1 * LG.Unit,
+                radius_square = (float)Math.Pow(1 * LG.Unit, 2),
                 color = new Vector3(125, 125, 125),
                 specular = 600,
                 reflection = 0.4
@@ -60,6 +63,7 @@ namespace RayTraceApplication
             {
                 center = new Vector3(5, 2, 6) * LG.Unit,
                 radius = 2 * LG.Unit,
+                radius_square = (float)Math.Pow(2 * LG.Unit, 2),
                 color = new Vector3(0, 0, 255),
                 specular = 100,
                 reflection = 0.8
@@ -70,6 +74,7 @@ namespace RayTraceApplication
             {
                 center = new Vector3(-6, 2, 14) * LG.Unit,
                 radius = 4 * LG.Unit,
+                radius_square = (float)Math.Pow(4 * LG.Unit, 2),
                 color = new Vector3(0, 255, 0),
                 specular = 600,
                 reflection = 0.6

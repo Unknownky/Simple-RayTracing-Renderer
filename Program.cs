@@ -6,7 +6,12 @@ namespace RayTraceApplication
     {
         static void Main(string[] args)
         {
+            SingleRayTrace();
 
+        }
+
+        private static void SingleRayTrace()
+        {
             RayTrace.CanvasForm.Text = "简易光线追踪渲染器";
 
             //开始计时 
@@ -19,6 +24,8 @@ namespace RayTraceApplication
             Console.ReadLine();
         }
 
-    }
         
+
+    }
+
 }

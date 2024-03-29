@@ -289,7 +289,7 @@ namespace RayTraceApplication
 
             double a = Vector3.Dot(d, d);
             double b = 2 * Vector3.Dot(d, -sphere.center);
-            double c = Vector3.Dot(-sphere.center, -sphere.center) - Math.Pow(sphere.radius, 2);
+            double c = Vector3.Dot(-sphere.center, -sphere.center) - sphere.radius_square; //添加radius的平方的优化  Math.Pow(sphere.radius, 2)-》sphere.radius_square
 
             double sq = b * b - 4 * a * c;
             if (sq > 0)

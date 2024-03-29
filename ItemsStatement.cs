@@ -38,6 +38,8 @@ namespace RayTraceApplication
     {
         public Vector3 center { get; set; }
         public float radius { get; set; }
+
+        public float radius_square { get; set; }
         public Vector3 color { get; set; }
 
         public double specular { get; set; }
