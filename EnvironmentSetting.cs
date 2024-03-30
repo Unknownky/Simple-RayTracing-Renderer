@@ -41,6 +41,8 @@ namespace RayTraceApplication
 
         public readonly Boundary[] boundaries = new Boundary[sphereCount]; //自动根据球体生成边界体
 
+        public readonly float[] minXArray = new float[sphereCount]; //边界体的最小X坐标数组 
+
         public readonly Light[] lights = new Light[lightCount];
 
         Sphere redSphere =
@@ -92,6 +94,12 @@ namespace RayTraceApplication
         Light pointLight = new PointLight() { intensity = 0.6f, position = new Vector3(-3, 7, 7) * LG.Unit };
 
 
+        public void EquipBoundaries()
+        {
+            GenerateBoundaries();
+            GenerateXMinArray();
+        }
+
         //根据球体生成边界体结构
         public void GenerateBoundaries()
         {
@@ -100,8 +108,21 @@ namespace RayTraceApplication
                 Sphere sphere = spheres[i];
                 Vector3 center = new Vector3(sphere.center.X*RayTrace.canvas.CanvasDistance/sphere.center.Z, sphere.center.Y*RayTrace.canvas.CanvasDistance/sphere.center.Z, RayTrace.canvas.CanvasDistance);
                 float length = 2 * sphere.radius * RayTrace.canvas.CanvasDistance / sphere.center.Z;
+                //由于ViewPort的缩放，需要对边界体进行从Canvas到ViewPort的缩放
+                center *= RayTrace.viewPort._scale;
+                length *= RayTrace.viewPort._scale;
                 boundaries[i] = new Boundary(center, length, sphere);
             }
+        }
+
+        public void GenerateXMinArray()
+        {
+            for (int i = 0; i < sphereCount; i++)
+            {
+                minXArray[i] = boundaries[i].x_min;
+            }
+            //对最小X坐标进行排序
+            Array.Sort(minXArray);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace RayTraceApplication
         //在program中创建(可以定义)相机与视口，这里使用默认设置
         public static Canvas canvas = new Canvas();
 
-        static ViewPort viewPort = new ViewPort(canvas);//视口根据canvas的大小来自适应，暂不主动设置
+        public static ViewPort viewPort = new ViewPort(canvas);//视口根据canvas的大小来自适应，暂不主动设置
 
         //Create the Environment
         static Environment environment = new Environment();
@@ -26,7 +26,7 @@ namespace RayTraceApplication
 
         public static Form CanvasForm = new Form() //根据渲染空间的画布大小来设置对应的窗体大小(也即像素大小)
         {
-            Height = canvas.CanvasHeight * LG.PixelPerUnit, 
+            Height = canvas.CanvasHeight * LG.PixelPerUnit,
             Width = canvas.CanvasWidth * LG.PixelPerUnit
         };
 
@@ -58,11 +58,12 @@ namespace RayTraceApplication
 
         //多线程光线追踪
         readonly int numThreads = 4; // 定义线程数量，经过测试最好为4
- 
+
         readonly int alpha = 255;
 
         public void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
         {
+            environment.EquipBoundaries();//配置好边界体
             if (Program.isMultiThread)
             {
                 //多线程光线追踪
@@ -264,7 +265,7 @@ namespace RayTraceApplication
 
             return new Vector3(x, y, z);
         }
-        
+
 
         //根据视口上的点进行光线追踪，视口后的物体才能被渲染在画布上，由于光线追踪反射的也能被渲染
         static Color TraceRay(Vector3 O, Vector3 d, float t_min, float t_max, int depth)//返回自定义的Color结构体
@@ -278,6 +279,13 @@ namespace RayTraceApplication
 
             if (sphere_active == null || depth == 0)
                 return ret_color;
+
+            //边界体判断逻辑，避免后面的计算
+            if (!IsWithinBoundary(d))
+            {
+                return ret_color;
+            }
+
 
             if (t_ret > t_min && t_ret < t_max && sphere_active != null)
             {
@@ -298,6 +306,35 @@ namespace RayTraceApplication
             }
             return ret_color;
         }
+
+        static bool IsWithinBoundary(Vector3 viewPoint)
+        {
+            //先排除两种情况
+            if (viewPoint.X < environment.minXArray[0])
+            {
+                return false;
+            }
+            if (viewPoint.X > environment.minXArray[environment.spheres.Length - 1])
+            {
+                return false;
+            }
+            //再进行二分查找，查找到大于的最大的minXArray的值的索引
+            int index = Array.BinarySearch(environment.minXArray, viewPoint.X);
+            if(environment.boundaries[index].x_max < viewPoint.X)
+            {
+                return false;
+            }
+            if(environment.boundaries[index].y_max < viewPoint.X)
+            {
+                return false;
+            }
+            if(environment.boundaries[index].y_min > viewPoint.X)
+            {
+                return false;
+            }
+            return true;//说明在边界体内
+        }
+
 
         //获取最短的t,用于阴影检测
         //static double ClosestInter(Vector3 o, Vector3 d, double t_min, double t_max) { 

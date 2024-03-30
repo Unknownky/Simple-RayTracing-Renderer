@@ -24,7 +24,7 @@ namespace RayTraceApplication
 
         public int distance { get; }//单纯先作为距离，之后的Z坐标再考虑进行调整
 
-        private int _scale;
+        public int _scale;
         public ViewPort(Canvas canvas, int scale = 2)
         {
             _scale = scale > 1 ? scale : 2;
@@ -34,7 +34,7 @@ namespace RayTraceApplication
         }
     }
 
-    //定义边界体结构,这里暂时都定义为正方形，并且不考虑Z轴，这里边界体结构直接生成在Canvas上
+    //定义边界体结构,这里暂时都定义为正方形，并且不考虑Z轴，这里边界体结构生成在ViewPort上
     public class Boundary
     {
         public Vector3 center { get; set; } //边界体的中心世界坐标
