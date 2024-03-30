@@ -12,8 +12,8 @@ namespace RayTraceApplication
     {
         public static RayTrace instance { get; private set; } = new RayTrace();
 
-        //在program中创建(可以定义)相机与视口
-        static Canvas canvas = new Canvas();
+        //在program中创建(可以定义)相机与视口，这里使用默认设置
+        public static Canvas canvas = new Canvas();
 
         static ViewPort viewPort = new ViewPort(canvas);//视口根据canvas的大小来自适应，暂不主动设置
 
@@ -231,7 +231,7 @@ namespace RayTraceApplication
         static readonly float invCanvasDistance = 1.0f / canvas.CanvasDistance;
 
 
-        //将像素点转换到Canvas上的坐标，Z的值都为CanvasDistance
+        //将像素点转换到Canvas上的坐标，Z的值都为CanvasDistance,FaceToCanvas才涉及到坐标系正负问题
         static Vector3 FaceToCanvas(float Face_x, float Face_y, float Face_z)
         {
             float Canvas_x = Face_x * invPixelPerUnit - canvas.CanvasWidth * 0.5f;

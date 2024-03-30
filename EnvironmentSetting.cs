@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using System.Xml.Schema;
 
 namespace RayTraceApplication
 {
@@ -20,8 +21,11 @@ namespace RayTraceApplication
 
     public class Environment //渲染空间
     {
+        public static int sphereCount = 4;
+
+        public static int lightCount = 3;
         public static System.Drawing.Color backgroundColor = System.Drawing.Color.Black;
-        public Environment()//初始化场景
+        public Environment()//初始化场景，暂时进行手动配置
         {
             spheres[0] = redSphere;
             spheres[1] = blueSphere;
@@ -33,24 +37,27 @@ namespace RayTraceApplication
             lights[2] = pointLight;
         }
 
-        public readonly Sphere[] spheres = new Sphere[4];
-        public readonly Light[] lights = new Light[3];
+        public readonly Sphere[] spheres = new Sphere[sphereCount];
+
+        public readonly Boundary[] boundaries = new Boundary[sphereCount]; //自动根据球体生成边界体
+
+        public readonly Light[] lights = new Light[lightCount];
 
         Sphere redSphere =
             new Sphere()
             {
-                center = new Vector3(0, -4, 8)*LG.Unit,
+                center = new Vector3(0, -4, 8) * LG.Unit,
                 radius = 2 * LG.Unit,
                 radius_square = (float)Math.Pow(2 * LG.Unit, 2),
                 color = new Vector3(255, 0, 0),
                 specular = 200,
                 reflection = 0.4f
-            };        
-        
+            };
+
         Sphere sphere3 =
             new Sphere()
             {
-                center = new Vector3(0, 3, 6)*LG.Unit,
+                center = new Vector3(0, 3, 6) * LG.Unit,
                 radius = 1 * LG.Unit,
                 radius_square = (float)Math.Pow(1 * LG.Unit, 2),
                 color = new Vector3(125, 125, 125),
@@ -84,5 +91,17 @@ namespace RayTraceApplication
         Light directionLight = new DirectionalLight() { intensity = 0.5f, direction = new Vector3(2, -6, 0) * LG.Unit, position = new Vector3(2, 6, 8) * LG.Unit };
         Light pointLight = new PointLight() { intensity = 0.6f, position = new Vector3(-3, 7, 7) * LG.Unit };
 
+
+        //根据球体生成边界体结构
+        public void GenerateBoundaries()
+        {
+            for (int i = 0; i < sphereCount; i++)
+            {
+                Sphere sphere = spheres[i];
+                Vector3 center = new Vector3(sphere.center.X*RayTrace.canvas.CanvasDistance/sphere.center.Z, sphere.center.Y*RayTrace.canvas.CanvasDistance/sphere.center.Z, RayTrace.canvas.CanvasDistance);
+                float length = 2 * sphere.radius * RayTrace.canvas.CanvasDistance / sphere.center.Z;
+                boundaries[i] = new Boundary(center, length, sphere);
+            }
+        }
     }
 }

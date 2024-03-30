@@ -34,21 +34,25 @@ namespace RayTraceApplication
         }
     }
 
-    //定义边界体结构
+    //定义边界体结构,这里暂时都定义为正方形，并且不考虑Z轴，这里边界体结构直接生成在Canvas上
     public class Boundary
     {
-        public int x_min { get; set; }
-        public int x_max { get; set; }
-        public int y_min { get; set; }
-        public int y_max { get; set; }
+        public Vector3 center { get; set; } //边界体的中心世界坐标
+        public float length { get; set; } //边界体的边长
+        public float x_min { get; set; }
+        public float x_max { get; set; }
+        public float y_min { get; set; }
+        public float y_max { get; set; }
         public Sphere sphere { get; set; } //边界体内的球体
-        public Boundary(int x_min, int x_max, int y_min, int y_max, Sphere sphere)
+        public Boundary(Vector3 centerPosition, float length, Sphere sphere)
         {
-            this.x_min = x_min;
-            this.x_max = x_max;
-            this.y_min = y_min;
-            this.y_max = y_max;
+            this.center = centerPosition;
+            this.length = length;
             this.sphere = sphere;
+            x_min = center.X - length / 2;
+            x_max = center.X + length / 2;
+            y_min = center.Y - length / 2;
+            y_max = center.Y + length / 2;
         }
     }
 
