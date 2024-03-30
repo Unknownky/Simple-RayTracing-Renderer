@@ -44,7 +44,7 @@ namespace RayTraceApplication
                 radius_square = (float)Math.Pow(2 * LG.Unit, 2),
                 color = new Vector3(255, 0, 0),
                 specular = 200,
-                reflection = 0.4
+                reflection = 0.4f
             };        
         
         Sphere sphere3 =
@@ -55,7 +55,7 @@ namespace RayTraceApplication
                 radius_square = (float)Math.Pow(1 * LG.Unit, 2),
                 color = new Vector3(125, 125, 125),
                 specular = 600,
-                reflection = 0.4
+                reflection = 0.4f
             };
 
         Sphere blueSphere =
@@ -66,7 +66,7 @@ namespace RayTraceApplication
                 radius_square = (float)Math.Pow(2 * LG.Unit, 2),
                 color = new Vector3(0, 0, 255),
                 specular = 100,
-                reflection = 0.8
+                reflection = 0.8f
             };
 
         Sphere greenSphere =
@@ -77,12 +77,12 @@ namespace RayTraceApplication
                 radius_square = (float)Math.Pow(4 * LG.Unit, 2),
                 color = new Vector3(0, 255, 0),
                 specular = 600,
-                reflection = 0.6
+                reflection = 0.6f
             };
 
-        Light globalLight = new GlobalLight() { intensity = 0.3, position = new Vector3(0, 0, 12) * LG.Unit };
-        Light directionLight = new DirectionalLight() { intensity = 0.5, direction = new Vector3(2, -6, 0) * LG.Unit, position = new Vector3(2, 6, 8) * LG.Unit };
-        Light pointLight = new PointLight() { intensity = 0.6, position = new Vector3(-3, 7, 7) * LG.Unit };
+        Light globalLight = new GlobalLight() { intensity = 0.3f, position = new Vector3(0, 0, 12) * LG.Unit };
+        Light directionLight = new DirectionalLight() { intensity = 0.5f, direction = new Vector3(2, -6, 0) * LG.Unit, position = new Vector3(2, 6, 8) * LG.Unit };
+        Light pointLight = new PointLight() { intensity = 0.6f, position = new Vector3(-3, 7, 7) * LG.Unit };
 
     }
 }

@@ -15,7 +15,7 @@ namespace RayTraceApplication
         //在program中创建(可以定义)相机与视口
         static Canvas canvas = new Canvas();
 
-        static ViewPort viewPort = new ViewPort(canvas);//进行自适应
+        static ViewPort viewPort = new ViewPort(canvas);//视口根据canvas的大小来自适应，暂不主动设置
 
         //Create the Environment
         static Environment environment = new Environment();
@@ -105,8 +105,12 @@ namespace RayTraceApplication
                             for (int y = 0; y < height; y += stepY)
                             {
                                 // 光线追踪逻辑
-                                canvasPoint = FaceToCanvas(x, y, 0);
-                                viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);
+                                // canvasPoint = FaceToCanvas(x, y, 0);
+                                // viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);
+
+                                //直接合并FaceToCanvas和CanvasToViewPort，优化为一步
+                                viewPoint = FaceToViewPort(x, y, 0);
+
                                 myFillColor = TraceRay(LG.Org, viewPoint, global_t_min, global_t_max, LG.Max_depth);
 
                                 int Draw_colorX, Draw_colorY, Draw_colorZ;
@@ -227,12 +231,12 @@ namespace RayTraceApplication
         static readonly float invCanvasDistance = 1.0f / canvas.CanvasDistance;
 
 
-        //将像素点转换到Canvas上
-        static Vector3 FaceToCanvas(double Face_x, double Face_y, double Face_z)
+        //将像素点转换到Canvas上的坐标，Z的值都为CanvasDistance
+        static Vector3 FaceToCanvas(float Face_x, float Face_y, float Face_z)
         {
-            float Canvas_x = (float)Face_x * invPixelPerUnit - canvas.CanvasWidth * 0.5f;
-            float Canvas_y = -(float)Face_y * invPixelPerUnit + canvas.CanvasHeight * 0.5f;
-            float Canvas_z = (float)Face_z * invPixelPerUnit + canvas.CanvasDistance;
+            float Canvas_x = Face_x * invPixelPerUnit - canvas.CanvasWidth * 0.5f;
+            float Canvas_y = -Face_y * invPixelPerUnit + canvas.CanvasHeight * 0.5f;
+            float Canvas_z = Face_z * invPixelPerUnit + canvas.CanvasDistance;
 
             return new Vector3(Canvas_x, Canvas_y, Canvas_z);
         }
@@ -247,12 +251,27 @@ namespace RayTraceApplication
             return new Vector3(x, y, z);
         }
 
-        //根据视口上的点进行光线追踪
-        static Color TraceRay(Vector3 O, Vector3 d, double t_min, double t_max, int depth)//返回自定义的Color结构体
+        //合并FaceToCanvas和CanvasToViewPort
+        static Vector3 FaceToViewPort(float Face_x, float Face_y, float Face_z)
+        {
+            float Canvas_x = Face_x * invPixelPerUnit - canvas.CanvasWidth * 0.5f;
+            float Canvas_y = -Face_y * invPixelPerUnit + canvas.CanvasHeight * 0.5f;
+            float Canvas_z = Face_z * invPixelPerUnit + canvas.CanvasDistance;
+
+            float x = Canvas_x * viewPort.Width * invCanvasWidth;
+            float y = Canvas_y * viewPort.Height * invCanvasHeight;
+            float z = Canvas_z * viewPort.distance * invCanvasDistance;
+
+            return new Vector3(x, y, z);
+        }
+        
+
+        //根据视口上的点进行光线追踪，视口后的物体才能被渲染在画布上，由于光线追踪反射的也能被渲染
+        static Color TraceRay(Vector3 O, Vector3 d, float t_min, float t_max, int depth)//返回自定义的Color结构体
         {//0代表起始点，d代表viewport上的点,t_min代表探测的最小值t*d,t_max代表探测的最大区域
          //对场景中的每个球体进行解方程
             Color ret_color = new Color(LG.BACKR, LG.BACKG, LG.BACKB); //背景颜色
-            double t_ret = t_max;
+            float t_ret = t_max;
             Sphere sphere_active = null;
 
             sphere_active = ClosestInter(O, d, t_min, t_max, out t_ret);
@@ -262,19 +281,19 @@ namespace RayTraceApplication
 
             if (t_ret > t_min && t_ret < t_max && sphere_active != null)
             {
-                Vector3 P = O + d * new Vector3((float)t_ret, (float)t_ret, (float)t_ret);
+                Vector3 P = O + d * new Vector3(t_ret, t_ret, t_ret);
                 Vector3 V = O - P;
                 Vector3 N = (P - sphere_active.center) / sphere_active.radius;
 
-                double pointIntensity = 0;
+                float pointIntensity = 0;
                 Color active_Color = new Color((int)sphere_active.color.X, (int)sphere_active.color.Y, (int)sphere_active.color.Z);
-                ret_color.color = ComputeLighting(P, N, V, (float)sphere_active.specular) * active_Color;
-                float reflection = (float)sphere_active.reflection;
+                ret_color.color = ComputeLighting(P, N, V, sphere_active.specular) * active_Color;
+                float reflection = sphere_active.reflection;
 
                 if (reflection > 0 && reflection <= 1)
                 {
                     Vector3 ReflectRay = Reflect(N, V);
-                    ret_color.color = (1 - reflection) * ret_color + reflection * TraceRay(P, ReflectRay, 0.001, t_max, depth - 1);
+                    ret_color.color = (1 - reflection) * ret_color + reflection * TraceRay(P, ReflectRay, 0.001f, t_max, depth - 1);
                 }
             }
             return ret_color;
@@ -282,14 +301,14 @@ namespace RayTraceApplication
 
         //获取最短的t,用于阴影检测
         //static double ClosestInter(Vector3 o, Vector3 d, double t_min, double t_max) { 
-        static Sphere ClosestInter(Vector3 P, Vector3 L, double t_min, double t_max, out double Sphere_t)
+        static Sphere ClosestInter(Vector3 P, Vector3 L, float t_min, float t_max, out float Sphere_t)
         {
-            double t_ret = t_max;
+            float t_ret = t_max;
             Sphere sphere_active = null;
             foreach (var sphere in environment.spheres)
             {
-                double t_active;
-                double[] ts = new double[2];
+                float t_active;
+                float[] ts = new float[2];
                 ts = IntersectRaySphere(P, L, sphere, t_min, t_max);
                 t_active = ts.Min();
                 if (t_active > t_min && t_active < t_max)
@@ -310,29 +329,29 @@ namespace RayTraceApplication
         }
 
         //解方程，求交点
-        static double[] IntersectRaySphere(Vector3 o, Vector3 d, Sphere sphere, double t_min, double t_max)
+        static float[] IntersectRaySphere(Vector3 o, Vector3 d, Sphere sphere, float t_min, float t_max)
         {
-            double t1 = t_max, t2 = t_max;
+            float t1 = t_max, t2 = t_max;
 
-            double a = Vector3.Dot(d, d);
-            double b = 2 * Vector3.Dot(d, -sphere.center);
-            double c = Vector3.Dot(-sphere.center, -sphere.center) - sphere.radius_square; //添加radius的平方的优化  Math.Pow(sphere.radius, 2)-》sphere.radius_square
+            float a = Vector3.Dot(d, d);
+            float b = 2 * Vector3.Dot(d, -sphere.center);
+            float c = Vector3.Dot(-sphere.center, -sphere.center) - sphere.radius_square; //添加radius的平方的优化  Math.Pow(sphere.radius, 2)-》sphere.radius_square
 
-            double sq = b * b - 4 * a * c;
+            float sq = b * b - 4 * a * c;
             if (sq > 0)
             {
-                t1 = (-b - Math.Sqrt(sq)) / (2 * a);
-                t2 = (-b + Math.Sqrt(sq)) / (2 * a);
+                t1 = (-b - (float)Math.Sqrt(sq)) / (2 * a);
+                t2 = (-b + (float)Math.Sqrt(sq)) / (2 * a);
             }
-            return new double[] { t1, t2 };
+            return new float[] { t1, t2 };
         }
 
         //计算光照
-        static double ComputeLighting(Vector3 P, Vector3 N, Vector3 V, float S)
+        static float ComputeLighting(Vector3 P, Vector3 N, Vector3 V, float S)
         {
-            double i = 0.0;
+            float i = 0.0f;
             Vector3 L = Vector3.Zero;//光向量
-            double t_max = double.MaxValue;//用来检测阴影
+            float t_max = float.MaxValue;//用来检测阴影
             foreach (Light light in environment.lights)
             {
                 if (light.type == "Global")
@@ -351,21 +370,21 @@ namespace RayTraceApplication
                         object o = light;//使用装箱操作,也可以使用动态绑定,都是在运行时使用的
                         DirectionalLight direc = (DirectionalLight)o;
                         L = direc.direction;
-                        t_max = double.MaxValue;
+                        t_max = float.MaxValue;
                     }
 
-                    Func<Vector3, double> Length = (vec) => Math.Sqrt(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
+                    Func<Vector3, float> Length = (vec) => (float)Math.Sqrt(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
 
                     Sphere Shadow_sphere;
-                    double Shadow_t;
+                    float Shadow_t;
                     //阴影检测
-                    Shadow_sphere = ClosestInter(P, L, 0.001, t_max, out Shadow_t);
+                    Shadow_sphere = ClosestInter(P, L, 0.001f, t_max, out Shadow_t);
                     if (Shadow_sphere != null)
                         continue;
 
 
                     //漫反射计算
-                    double n_dot_l = Vector3.Dot(L, N);
+                    float n_dot_l = Vector3.Dot(L, N);
                     if (n_dot_l > 0)
                         i += light.intensity * n_dot_l / (Length(N) * Length(L));
 
@@ -373,10 +392,10 @@ namespace RayTraceApplication
                     if (S > -1)
                     {
                         Vector3 R = Reflect(N, L);
-                        double r_dot_v = Vector3.Dot(R, V);
+                        float r_dot_v = Vector3.Dot(R, V);
                         if (r_dot_v > 0)
                         {
-                            i += light.intensity * Math.Pow(r_dot_v / (Length(R) * Length(V)), S);
+                            i += light.intensity * (float)Math.Pow(r_dot_v / (Length(R) * Length(V)), S);
                         }
                     }
                 }
@@ -391,4 +410,3 @@ namespace RayTraceApplication
         }
     }
 }
-

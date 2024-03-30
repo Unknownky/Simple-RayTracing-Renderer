@@ -34,6 +34,25 @@ namespace RayTraceApplication
         }
     }
 
+    //定义边界体结构
+    public class Boundary
+    {
+        public int x_min { get; set; }
+        public int x_max { get; set; }
+        public int y_min { get; set; }
+        public int y_max { get; set; }
+        public Sphere sphere { get; set; } //边界体内的球体
+        public Boundary(int x_min, int x_max, int y_min, int y_max, Sphere sphere)
+        {
+            this.x_min = x_min;
+            this.x_max = x_max;
+            this.y_min = y_min;
+            this.y_max = y_max;
+            this.sphere = sphere;
+        }
+    }
+
+
     public class Sphere
     {
         public Vector3 center { get; set; } //球心
@@ -42,9 +61,9 @@ namespace RayTraceApplication
         public float radius_square { get; set; } //半径平方
         public Vector3 color { get; set; } //球体颜色
 
-        public double specular { get; set; } //锐利度
+        public float specular { get; set; } //锐利度
 
-        public double reflection { get; set; } //反射度
+        public float reflection { get; set; } //反射度
     }
 
     public class Color
@@ -77,7 +96,7 @@ namespace RayTraceApplication
     {
         public Vector3 position { get; set; } //灯的位置
 
-        public double intensity { get; set; } //灯的强度
+        public float intensity { get; set; } //灯的强度
 
         public abstract string type { get; } //灯的类型
     }
