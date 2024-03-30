@@ -8,7 +8,7 @@ namespace RayTraceApplication
         public int CanvasWidth { get; }
 
         public int CanvasDistance { get; }
-        public Canvas(int height = 3*LG.Unit, int width = 4 * LG.Unit, int distance = 2 * LG.Unit)
+        public Canvas(int height = 3*LG.Unit, int width = 4 * LG.Unit, int distance = 2 * LG.Unit) //默认构造函数构造为3*4的标准单位画布
         {
             CanvasHeight = height;
             CanvasWidth = width;
@@ -36,25 +36,25 @@ namespace RayTraceApplication
 
     public class Sphere
     {
-        public Vector3 center { get; set; }
-        public float radius { get; set; }
+        public Vector3 center { get; set; } //球心
+        public float radius { get; set; } //半径
 
-        public float radius_square { get; set; }
-        public Vector3 color { get; set; }
+        public float radius_square { get; set; } //半径平方
+        public Vector3 color { get; set; } //球体颜色
 
-        public double specular { get; set; }
+        public double specular { get; set; } //锐利度
 
-        public double reflection { get; set; }
+        public double reflection { get; set; } //反射度
     }
 
     public class Color
     {
         public Color(int _r, int _g, int _b)
         {
-            color = new Vector3(_r, _g, _b);
+            color = new Vector3(_r, _g, _b); 
         }
 
-        public static Vector3 operator *(double n, Color c) { return new Vector3((float)(c.color.X * n), (float)(c.color.Y * n), (float)(c.color.Z * n)); }
+        public static Vector3 operator *(double n, Color c) { return new Vector3((float)(c.color.X * n), (float)(c.color.Y * n), (float)(c.color.Z * n)); } //定义向量数乘
 
         private Vector3 _color;
         public Vector3 color
@@ -73,16 +73,16 @@ namespace RayTraceApplication
         }//用一个三维向量来保存RGB数据
     }
 
-    abstract public class Light
+     public abstract class Light //光源
     {
-        public Vector3 position { get; set; }
+        public Vector3 position { get; set; } //灯的位置
 
-        public double intensity { get; set; }
+        public double intensity { get; set; } //灯的强度
 
-        public abstract string type { get; }
+        public abstract string type { get; } //灯的类型
     }
 
-    public class PointLight : Light
+    public class PointLight : Light //点光源
     {
         public override string type { get; }
         public PointLight()
@@ -91,7 +91,7 @@ namespace RayTraceApplication
         }
     }
 
-    public class GlobalLight : Light
+    public class GlobalLight : Light //全局光照
     {
         public override string type { get; }
         public GlobalLight()
@@ -100,7 +100,7 @@ namespace RayTraceApplication
         }
     }
 
-    public class DirectionalLight : Light
+    public class DirectionalLight : Light //方向光照
     {
         public Vector3 direction { get; set; }
 

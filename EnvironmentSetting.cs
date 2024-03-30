@@ -3,22 +3,22 @@ using System.Numerics;
 
 namespace RayTraceApplication
 {
-    public static class LG
+    public static class LG //标准量
     {
-        public const int Unit = 1;
-        public const int PixelPerUnit = 250;
-        public const int Max_depth = 3;
+        public const int Unit = 1;  //渲染世界单位 
+        public const int PixelPerUnit = 250; //每渲染世界对应窗口像素值
+        public const int Max_depth = 3;  //最大递归深度
         public const int BACKR = 45;
         public const int BACKG = 45;
         public const int BACKB = 45;
         public const int Total_area = 5;
         public static Vector3 Org = new Vector3(0, 0, 0);//定义坐标原点
-        public const float Garmma = 1.1f;
+        public const float Garmma = 1.1f; //garmma纠正
         public static int HStep = 1;  //在当前逻辑中影响速度，同时影响渲染的效果
         public static int WStep = 1;  //在当前逻辑中基本不影响速度，只影响渲染的效果
     }
 
-    public class Environment
+    public class Environment //渲染空间
     {
         public static System.Drawing.Color backgroundColor = System.Drawing.Color.Black;
         public Environment()//初始化场景

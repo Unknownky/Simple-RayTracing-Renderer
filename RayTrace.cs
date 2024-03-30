@@ -24,9 +24,9 @@ namespace RayTraceApplication
 
         public static readonly string logFilepath = "Log.txt";
 
-        public static Form CanvasForm = new Form()
+        public static Form CanvasForm = new Form() //根据渲染空间的画布大小来设置对应的窗体大小(也即像素大小)
         {
-            Height = canvas.CanvasHeight * LG.PixelPerUnit,
+            Height = canvas.CanvasHeight * LG.PixelPerUnit, 
             Width = canvas.CanvasWidth * LG.PixelPerUnit
         };
 
@@ -185,6 +185,7 @@ namespace RayTraceApplication
             }
         }
 
+        //将运行结果写入文件便于分析
         private static void WriteResultToFile()
         {
             //把时间附加输出到当前文件夹中的Log.txt文件中
@@ -205,6 +206,7 @@ namespace RayTraceApplication
             }
         }
 
+        //garmma修正
         static void GarmmaFixed(ref int X, ref int Y, ref int Z)
         {
             X = (int)Math.Pow(X, LG.Garmma);
@@ -212,17 +214,20 @@ namespace RayTraceApplication
             Z = (int)Math.Pow(Z, LG.Garmma);
         }
 
+        //颜色单值修正
         static int ClampToColor(int num)
         {
             return num < 0 ? 0 : (num > 255 ? 255 : num); // Custom implementation to clamp the value between 0 and 255
         }
 
-        //Tag:优化部分
+        //Tag:优化部分，减少倒数的计算
         static readonly float invPixelPerUnit = 1.0f / LG.PixelPerUnit;
         static readonly float invCanvasWidth = 1.0f / canvas.CanvasWidth;
         static readonly float invCanvasHeight = 1.0f / canvas.CanvasHeight;
         static readonly float invCanvasDistance = 1.0f / canvas.CanvasDistance;
 
+
+        //将像素点转换到Canvas上
         static Vector3 FaceToCanvas(double Face_x, double Face_y, double Face_z)
         {
             float Canvas_x = (float)Face_x * invPixelPerUnit - canvas.CanvasWidth * 0.5f;
@@ -232,6 +237,7 @@ namespace RayTraceApplication
             return new Vector3(Canvas_x, Canvas_y, Canvas_z);
         }
 
+        //将Canvas上的点转换到ViewPort上
         static Vector3 CanvasToViewPort(float vx, float vy, float vz)
         {
             float x = vx * viewPort.Width * invCanvasWidth;
@@ -241,10 +247,11 @@ namespace RayTraceApplication
             return new Vector3(x, y, z);
         }
 
+        //根据视口上的点进行光线追踪
         static Color TraceRay(Vector3 O, Vector3 d, double t_min, double t_max, int depth)//返回自定义的Color结构体
         {//0代表起始点，d代表viewport上的点,t_min代表探测的最小值t*d,t_max代表探测的最大区域
          //对场景中的每个球体进行解方程
-            Color ret_color = new Color(LG.BACKR, LG.BACKG, LG.BACKB);
+            Color ret_color = new Color(LG.BACKR, LG.BACKG, LG.BACKB); //背景颜色
             double t_ret = t_max;
             Sphere sphere_active = null;
 
@@ -275,7 +282,6 @@ namespace RayTraceApplication
 
         //获取最短的t,用于阴影检测
         //static double ClosestInter(Vector3 o, Vector3 d, double t_min, double t_max) { 
-
         static Sphere ClosestInter(Vector3 P, Vector3 L, double t_min, double t_max, out double Sphere_t)
         {
             double t_ret = t_max;
@@ -303,7 +309,7 @@ namespace RayTraceApplication
             return sphere_active;
         }
 
-        //解方程
+        //解方程，求交点
         static double[] IntersectRaySphere(Vector3 o, Vector3 d, Sphere sphere, double t_min, double t_max)
         {
             double t1 = t_max, t2 = t_max;
@@ -321,6 +327,7 @@ namespace RayTraceApplication
             return new double[] { t1, t2 };
         }
 
+        //计算光照
         static double ComputeLighting(Vector3 P, Vector3 N, Vector3 V, float S)
         {
             double i = 0.0;
@@ -377,6 +384,7 @@ namespace RayTraceApplication
             return i;
         }
 
+        //计算反射向量
         static Vector3 Reflect(Vector3 N, Vector3 L)
         {
             return 2 * N * Vector3.Dot(N, L) - L;
