@@ -14,8 +14,8 @@ namespace RayTraceApplication
         public const int Total_area = 5;
         public static Vector3 Org = new Vector3(0, 0, 0);//定义坐标原点
         public const float Garmma = 1.1f;
-        public static int HStep = 1;
-        public static int WStep = 1;
+        public static int HStep = 1;  //在当前逻辑中影响速度，同时影响渲染的效果
+        public static int WStep = 1;  //在当前逻辑中基本不影响速度，只影响渲染的效果
     }
 
     public class Environment

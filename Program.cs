@@ -4,7 +4,6 @@ namespace RayTraceApplication
     class Program
     {
         public static bool isLoop = false;
-
         public static bool isMultiThread = true;
         private static int loopCount = 2;
         static void Main(string[] args)

@@ -57,7 +57,7 @@ namespace RayTraceApplication
         Color myFillColor = new Color(0, 0, 0);
 
         //多线程光线追踪
-        readonly int numThreads = 4; // 定义线程数量
+        readonly int numThreads = 4; // 定义线程数量，经过测试最好为4
  
         readonly int alpha = 255;
 
