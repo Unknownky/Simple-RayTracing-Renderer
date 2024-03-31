@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -99,34 +100,53 @@ namespace RayTraceApplication
 
                 threads[i] = new Thread(() =>
                 {
-                    using (Graphics g = Graphics.FromImage(bitmaps[threadIndex]))
+                    Bitmap bitmap = bitmaps[threadIndex];
+                    Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                    BitmapData bmpData = bitmap.LockBits(rect, ImageLockMode.WriteOnly, bitmap.PixelFormat);
+
+                    try
                     {
-                        for (int x = threadIndex; x < width; x += numThreads)
+                        unsafe
                         {
-                            for (int y = 0; y < height; y += stepY)
+                            byte* ptr = (byte*)bmpData.Scan0;
+
+                            for (int x = threadIndex; x < width; x += numThreads)
                             {
-                                // 光线追踪逻辑
-                                // canvasPoint = FaceToCanvas(x, y, 0);
-                                // viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);
+                                for (int y = 0; y < height; y += stepY)
+                                {
+                                    // 光线追踪逻辑
+                                    // canvasPoint = FaceToCanvas(x, y, 0);
+                                    // viewPoint = CanvasToViewPort(canvasPoint.X, canvasPoint.Y, canvasPoint.Z);
 
-                                //直接合并FaceToCanvas和CanvasToViewPort，优化为一步
-                                viewPoint = FaceToViewPort(x, y, 0);
+                                    //直接合并FaceToCanvas和CanvasToViewPort，优化为一步
+                                    viewPoint = FaceToViewPort(x, y, 0);
 
-                                myFillColor = TraceRay(LG.Org, viewPoint, global_t_min, global_t_max, LG.Max_depth);
+                                    myFillColor = TraceRay(LG.Org, viewPoint, global_t_min, global_t_max, LG.Max_depth);
 
-                                int Draw_colorX, Draw_colorY, Draw_colorZ;
-                                Draw_colorX = (int)myFillColor.color.X;
-                                Draw_colorY = (int)myFillColor.color.Y;
-                                Draw_colorZ = (int)myFillColor.color.Z;
-                                GarmmaFixed(ref Draw_colorX, ref Draw_colorY, ref Draw_colorZ);
-                                Draw_colorX = ClampToColor(Draw_colorX);
-                                Draw_colorY = ClampToColor(Draw_colorY);
-                                Draw_colorZ = ClampToColor(Draw_colorZ);
+                                    int Draw_colorX, Draw_colorY, Draw_colorZ;
+                                    Draw_colorX = (int)myFillColor.color.X;
+                                    Draw_colorY = (int)myFillColor.color.Y;
+                                    Draw_colorZ = (int)myFillColor.color.Z;
+                                    GarmmaFixed(ref Draw_colorX, ref Draw_colorY, ref Draw_colorZ);
+                                    Draw_colorX = ClampToColor(Draw_colorX);
+                                    Draw_colorY = ClampToColor(Draw_colorY);
+                                    Draw_colorZ = ClampToColor(Draw_colorZ);
 
-                                // 在位图上绘制像素点
-                                g.FillRectangle(new SolidBrush(System.Drawing.Color.FromArgb(alpha, Draw_colorX, Draw_colorY, Draw_colorZ)), x, y, stepX, stepY);
+                                    // 计算像素在内存中的偏移量
+                                    int offset = y * bmpData.Stride + x * 4;
+
+                                    // 在内存中设置像素值
+                                    ptr[offset] = (byte)Draw_colorZ; // Blue
+                                    ptr[offset + 1] = (byte)Draw_colorY; // Green
+                                    ptr[offset + 2] = (byte)Draw_colorX; // Red
+                                    ptr[offset + 3] = (byte)alpha; // Alpha
+                                }
                             }
                         }
+                    }
+                    finally
+                    {
+                        bitmap.UnlockBits(bmpData); // 解锁位图
                     }
                 });
 
@@ -281,10 +301,10 @@ namespace RayTraceApplication
                 return ret_color;
 
             //边界体判断逻辑，避免后面的计算
-            if (!IsWithinBoundary(d))
-            {
-                return ret_color;
-            }
+            //if (!IsWithinBoundary(d))
+            //{
+            //    return ret_color;
+            //}
 
 
             if (t_ret > t_min && t_ret < t_max && sphere_active != null)
@@ -318,17 +338,21 @@ namespace RayTraceApplication
             {
                 return false;
             }
-            //再进行二分查找，查找到大于的最大的minXArray的值的索引
+            //再进行二分查找，查找到大于的最大的minXArray的值的索引,结果应该是index的按位取补
             int index = Array.BinarySearch(environment.minXArray, viewPoint.X);
+            if (index < 0)
+            {
+                index = ~index - 1;
+            }
             if(environment.boundaries[index].x_max < viewPoint.X)
             {
                 return false;
             }
-            if(environment.boundaries[index].y_max < viewPoint.X)
+            if(environment.boundaries[index].y_max < viewPoint.Y)
             {
                 return false;
             }
-            if(environment.boundaries[index].y_min > viewPoint.X)
+            if(environment.boundaries[index].y_min > viewPoint.Y)
             {
                 return false;
             }
