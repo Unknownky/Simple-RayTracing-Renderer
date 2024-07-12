@@ -49,6 +49,9 @@ namespace RayTraceApplication
             // 设置Form的KeyPreview属性为true，以确保按键事件能被窗体捕获
             this.KeyPreview = true;
 
+            // 启用双缓冲
+            this.DoubleBuffered = true;
+
             // 初始化计时器
             timer.Interval = LG.timeInterval; // 设置时间间隔为500毫秒
             timer.Tick += (sender, e) => { canProcessKey = true; }; // 时间间隔到了之后，允许再次处理按键事件
