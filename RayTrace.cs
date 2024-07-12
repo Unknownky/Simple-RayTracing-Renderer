@@ -15,7 +15,6 @@ namespace RayTraceApplication
 
         //在program中创建(可以定义)相机与视口，这里使用默认设置
         public static Canvas canvas = new Canvas();
-
         public static ViewPort viewPort = new ViewPort(canvas);//视口根据canvas的大小来自适应，暂不主动设置
 
         //Create the Environment
@@ -25,12 +24,11 @@ namespace RayTraceApplication
 
         public static readonly string logFilepath = "Log.txt";
 
-        public static Form CanvasForm = new Form() //根据渲染空间的画布大小来设置对应的窗体大小(也即像素大小)
+        public static MyForm CanvasForm = new MyForm() //根据渲染空间的画布大小来设置对应的窗体大小(也即像素大小)
         {
             Height = canvas.CanvasHeight * LG.PixelPerUnit,
-            Width = canvas.CanvasWidth * LG.PixelPerUnit
+            Width = canvas.CanvasWidth * LG.PixelPerUnit,
         };
-
 
         int global_t_min = 1;
         int global_t_max = int.MaxValue;
@@ -59,10 +57,121 @@ namespace RayTraceApplication
 
         //多线程光线追踪
         readonly int numThreads = 4; // 定义线程数量，经过测试最好为4
-
         readonly int alpha = 255;
+        public static float angleXDegrees = 0;  //正为向下，负为向上
+        public static float angleYDegrees = 0;  //正为向右，负为向左
+        public static float angleZDegrees = 0;  //正为逆时针，负为顺时针
+
+        public static bool isCameraMove = false; //是否进行相机移动
+
+        // 定义绕X轴旋转的矩阵
+        static float[,] RotateXMatrix(float angleDegrees)
+        {
+            float angleRadians = (float)(angleDegrees * Math.PI / 180.0);
+            return new float[,]
+            {
+        { 1, 0, 0 },
+        { 0, (float)Math.Cos(angleRadians), -(float)Math.Sin(angleRadians) },
+        { 0, (float)Math.Sin(angleRadians), (float)Math.Cos(angleRadians) }
+            };
+        }
+
+        // 定义绕Y轴旋转的矩阵
+        static float[,] RotateYMatrix(float angleDegrees)
+        {
+            float angleRadians = (float)(angleDegrees * Math.PI / 180.0);
+            return new float[,]
+            {
+        { (float)Math.Cos(angleRadians), 0, (float)Math.Sin(angleRadians) },
+        { 0, 1, 0 },
+        { -(float)Math.Sin(angleRadians), 0, (float)Math.Cos(angleRadians) }
+            };
+        }
+
+        // 定义绕Z轴旋转的矩阵
+        static float[,] RotateZMatrix(float angleDegrees)
+        {
+            float angleRadians = (float)(angleDegrees * Math.PI / 180.0);
+            return new float[,]
+            {
+        { (float)Math.Cos(angleRadians), -(float)Math.Sin(angleRadians), 0 },
+        { (float)Math.Sin(angleRadians), (float)Math.Cos(angleRadians), 0 },
+        { 0, 0, 1 }
+            };
+        }
+
+
+        //应用旋转矩阵，使用这个即可
+        static Vector3 RotatePoint(float angleXDegrees, float angleYDegrees, float angleZDegrees, Vector3 point)
+        {
+            float[,] rotationMatrixX = RotateXMatrix(angleXDegrees);
+            float[,] rotationMatrixY = RotateYMatrix(angleYDegrees);
+            float[,] rotationMatrixZ = RotateZMatrix(angleZDegrees);
+
+            float[,] rotationMatrix = MatrixMultiply(rotationMatrixX, rotationMatrixY);
+            rotationMatrix = MatrixMultiply(rotationMatrix, rotationMatrixZ);
+
+            return new Vector3(
+                rotationMatrix[0, 0] * point.X + rotationMatrix[0, 1] * point.Y + rotationMatrix[0, 2] * point.Z,
+                rotationMatrix[1, 0] * point.X + rotationMatrix[1, 1] * point.Y + rotationMatrix[1, 2] * point.Z,
+                rotationMatrix[2, 0] * point.X + rotationMatrix[2, 1] * point.Y + rotationMatrix[2, 2] * point.Z
+            );
+        }
+
+
+        //矩阵相乘help函数
+        private static float[,] MatrixMultiply(float[,] rotationMatrix, float[,] rotationMatrixZ)
+        {
+            float[,] result = new float[3, 3];
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    result[i, j] = 0;
+                    for (int k = 0; k < 3; k++)
+                    {
+                        result[i, j] += rotationMatrix[i, k] * rotationMatrixZ[k, j];
+                    }
+                }
+            }
+            return result;
+        }
 
         public void CanvasForm_Paint(object sender, PaintEventArgs e)//使用该函数来进行光线追踪的显示
+        {
+            RayTraceRendering(e);
+        }
+
+        public static void CameraMove(Keys keyCode)
+        {
+            switch (keyCode)
+            {
+                case Keys.S:
+                    angleXDegrees += 5;
+                    break;
+                case Keys.W:
+                    angleXDegrees -= 5;
+                    break;
+                case Keys.A:
+                    angleYDegrees -= 5;
+                    break;
+                case Keys.D:
+                    angleYDegrees += 5;
+                    break;
+                case Keys.E:
+                    angleZDegrees -= 5;
+                    break;
+                case Keys.Q:
+                    angleZDegrees += 5;
+                    break;
+                default:
+                    break;
+            }
+            // 重绘窗体
+            CanvasForm.Invalidate();
+        }
+
+        private void RayTraceRendering(PaintEventArgs e)
         {
             environment.EquipBoundaries();//配置好边界体
             if (Program.isMultiThread)
@@ -79,6 +188,8 @@ namespace RayTraceApplication
             stopwatch.Stop();
             //把时间附加输出到当前文件夹中的Log.txt文件中
             WriteResultToFile();
+
+
         }
 
         private void MultiThreadTraceRay(PaintEventArgs e)
@@ -246,10 +357,10 @@ namespace RayTraceApplication
         }
 
         //Tag:优化部分，减少倒数的计算
-        static readonly float invPixelPerUnit = 1.0f / LG.PixelPerUnit;
-        static readonly float invCanvasWidth = 1.0f / canvas.CanvasWidth;
-        static readonly float invCanvasHeight = 1.0f / canvas.CanvasHeight;
-        static readonly float invCanvasDistance = 1.0f / canvas.CanvasDistance;
+        static float invPixelPerUnit = 1.0f / LG.PixelPerUnit;
+        static float invCanvasWidth = 1.0f / canvas.CanvasWidth;
+        static float invCanvasHeight = 1.0f / canvas.CanvasHeight;
+        static float invCanvasDistance = 1.0f / canvas.CanvasDistance;
 
 
         //将像素点转换到Canvas上的坐标，Z的值都为CanvasDistance,FaceToCanvas才涉及到坐标系正负问题
@@ -283,7 +394,7 @@ namespace RayTraceApplication
             float y = Canvas_y * viewPort.Height * invCanvasHeight;
             float z = Canvas_z * viewPort.distance * invCanvasDistance;
 
-            return new Vector3(x, y, z);
+            return RotatePoint(angleXDegrees, angleYDegrees, angleZDegrees, new Vector3(x, y, z));
         }
 
 
@@ -344,15 +455,15 @@ namespace RayTraceApplication
             {
                 index = ~index - 1;
             }
-            if(environment.boundaries[index].x_max < viewPoint.X)
+            if (environment.boundaries[index].x_max < viewPoint.X)
             {
                 return false;
             }
-            if(environment.boundaries[index].y_max < viewPoint.Y)
+            if (environment.boundaries[index].y_max < viewPoint.Y)
             {
                 return false;
             }
-            if(environment.boundaries[index].y_min > viewPoint.Y)
+            if (environment.boundaries[index].y_min > viewPoint.Y)
             {
                 return false;
             }

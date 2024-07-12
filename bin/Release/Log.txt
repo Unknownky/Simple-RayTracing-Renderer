@@ -15,3 +15,5 @@ Time elapsed: 5290ms	5s		11.5929959895685%
 Time elapsed: 5290ms	5s		11.5929959895685%
 Time elapsed: 5290ms	5s		11.5929959895685%
 Time elapsed: 5113ms	5s		11.2051017948325%
+Time elapsed: 4833ms	4s		10.5914838596568%
+Time elapsed: 408ms	0s		0.894128991255944%

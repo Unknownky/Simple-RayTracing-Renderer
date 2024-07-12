@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using System.Windows.Forms;
 
 namespace RayTraceApplication
 {
@@ -8,7 +10,7 @@ namespace RayTraceApplication
         public int CanvasWidth { get; }
 
         public int CanvasDistance { get; }
-        public Canvas(int height = 3*LG.Unit, int width = 4 * LG.Unit, int distance = 2 * LG.Unit) //默认构造函数构造为3*4的标准单位画布
+        public Canvas(int height = 3 * LG.Unit, int width = 4 * LG.Unit, int distance = 2 * LG.Unit) //默认构造函数构造为3*4的标准单位画布
         {
             CanvasHeight = height;
             CanvasWidth = width;
@@ -28,11 +30,44 @@ namespace RayTraceApplication
         public ViewPort(Canvas canvas, int scale = 2)
         {
             _scale = scale > 1 ? scale : 2;
-            Height = canvas.CanvasHeight*_scale;
-            Width = canvas.CanvasWidth*_scale;
+            Height = canvas.CanvasHeight * _scale;
+            Width = canvas.CanvasWidth * _scale;
             distance = canvas.CanvasDistance * _scale;
         }
     }
+
+    public class MyForm : Form
+    {
+        private Timer timer = new Timer();
+        private bool canProcessKey = true; // 控制按键事件是否被处理的标志
+
+        public MyForm()
+        {
+            // 为KeyDown事件添加事件处理程序
+            this.KeyDown += new KeyEventHandler(MyForm_KeyDown);
+
+            // 设置Form的KeyPreview属性为true，以确保按键事件能被窗体捕获
+            this.KeyPreview = true;
+
+            // 初始化计时器
+            timer.Interval = LG.timeInterval; // 设置时间间隔为500毫秒
+            timer.Tick += (sender, e) => { canProcessKey = true; }; // 时间间隔到了之后，允许再次处理按键事件
+            timer.Start(); // 启动计时器
+        }
+
+        private void MyForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (canProcessKey)
+            {
+                // 在这里处理按键事件
+                RayTrace.CameraMove(e.KeyCode);
+
+                canProcessKey = false; // 处理完按键事件后，设置标志为false，防止在设定的时间间隔内重复处理
+            }
+        }
+
+    }
+
 
     //定义边界体结构,这里暂时都定义为正方形，并且不考虑Z轴，这里边界体结构生成在ViewPort上
     public class Boundary
@@ -74,7 +109,7 @@ namespace RayTraceApplication
     {
         public Color(int _r, int _g, int _b)
         {
-            color = new Vector3(_r, _g, _b); 
+            color = new Vector3(_r, _g, _b);
         }
 
         public static Vector3 operator *(double n, Color c) { return new Vector3((float)(c.color.X * n), (float)(c.color.Y * n), (float)(c.color.Z * n)); } //定义向量数乘
@@ -96,7 +131,7 @@ namespace RayTraceApplication
         }//用一个三维向量来保存RGB数据
     }
 
-     public abstract class Light //光源
+    public abstract class Light //光源
     {
         public Vector3 position { get; set; } //灯的位置
 
