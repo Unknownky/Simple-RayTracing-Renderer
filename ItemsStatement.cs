@@ -64,7 +64,7 @@ namespace RayTraceApplication
             {
                 // 在这里处理按键事件
                 RayTrace.CameraMove(e.KeyCode);
-
+                RayTrace.ChangeBackgroundColor(e.KeyCode);
                 canProcessKey = false; // 处理完按键事件后，设置标志为false，防止在设定的时间间隔内重复处理
             }
         }

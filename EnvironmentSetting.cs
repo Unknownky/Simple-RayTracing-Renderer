@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Xml.Schema;
 
@@ -9,9 +10,9 @@ namespace RayTraceApplication
         public const int Unit = 1;  //渲染世界单位 
         public const int PixelPerUnit = 250; //每渲染世界对应窗口像素值
         public const int Max_depth = 3;  //最大递归深度
-        public const int BACKR = 0;
-        public const int BACKG = 0;
-        public const int BACKB = 0;
+        public static int BACKR = 0;
+        public static int BACKG = 0;
+        public static int BACKB = 0;
         public const int Total_area = 5;
         public static Vector3 Org = new Vector3(0, 0, 0);//定义坐标原点
         public const float Garmma = 1.1f; //garmma纠正
@@ -19,7 +20,27 @@ namespace RayTraceApplication
         public static int WStep = 1;  //在当前逻辑中基本不影响速度，只影响渲染的效果
 
         public static int timeInterval = 300; //设置时间间隔为300毫秒
+
+        public static int MaxThreadCount = 4; //最大线程数
+
+        public static int MaxLoopCount = 2; //最大循环次数
+
+        public static int alpha = 255; //透明度
+
+        public static Dictionary<string, Color> BackgroundColor = new Dictionary<string, Color>()
+        {
+            {"Black", new Color(0, 0, 0)},
+            {"White", new Color(255, 255, 255)},
+            {"Red", new Color(255, 0, 0)},
+            {"Green", new Color(0, 255, 0)},
+            {"Blue", new Color(0, 0, 255)},
+            {"Yellow", new Color(255, 255, 0)},
+            {"Purple", new Color(255, 0, 255)},
+            {"Cyan", new Color(0, 255, 255)},
+            {"Gray", new Color(125, 125, 125)}
+        };
     }
+
 
     public class Environment //渲染空间
     {
@@ -94,6 +115,14 @@ namespace RayTraceApplication
         Light globalLight = new GlobalLight() { intensity = 0.3f, position = new Vector3(0, 0, 12) * LG.Unit };
         Light directionLight = new DirectionalLight() { intensity = 0.5f, direction = new Vector3(2, -6, 0) * LG.Unit, position = new Vector3(2, 6, 8) * LG.Unit };
         Light pointLight = new PointLight() { intensity = 0.6f, position = new Vector3(-3, 7, 7) * LG.Unit };
+
+        public void EquipBackground(Color color)
+        {
+            LG.BACKR = (int)color.color.X;
+            LG.BACKG = (int)color.color.Y;
+            LG.BACKB = (int)color.color.Z;
+        }
+
 
 
         public void EquipBoundaries()

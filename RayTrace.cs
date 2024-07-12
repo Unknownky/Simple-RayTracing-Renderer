@@ -56,8 +56,8 @@ namespace RayTraceApplication
         Color myFillColor = new Color(0, 0, 0);
 
         //多线程光线追踪
-        readonly int numThreads = 4; // 定义线程数量，经过测试最好为4
-        readonly int alpha = 255;
+        readonly int numThreads = LG.MaxThreadCount; // 定义线程数量，经过测试最好为4
+        readonly int alpha = LG.alpha; // 透明度
         public static float angleXDegrees = 0;  //正为向下，负为向上
         public static float angleYDegrees = 0;  //正为向右，负为向左
         public static float angleZDegrees = 0;  //正为逆时针，负为顺时针
@@ -142,6 +142,7 @@ namespace RayTraceApplication
             RayTraceRendering(e);
         }
 
+        //相机移动功能
         public static void CameraMove(Keys keyCode)
         {
             switch (keyCode)
@@ -170,6 +171,43 @@ namespace RayTraceApplication
             // 重绘窗体
             CanvasForm.Invalidate();
         }
+
+
+        //背景颜色切换功能
+        public static void ChangeBackgroundColor(Keys keyCode)
+        {
+            switch (keyCode)
+            {
+                case Keys.NumPad1:
+                    environment.EquipBackground(LG.BackgroundColor["Black"]);
+                    break;   
+                case Keys.NumPad2:
+                    environment.EquipBackground(LG.BackgroundColor["White"]);
+                    break;
+                case Keys.NumPad3:
+                    environment.EquipBackground(LG.BackgroundColor["Red"]);
+                    break;
+                case Keys.NumPad4:
+                    environment.EquipBackground(LG.BackgroundColor["Green"]);
+                    break;
+                case Keys.NumPad5:
+                    environment.EquipBackground(LG.BackgroundColor["Blue"]);
+                    break;
+                case Keys.NumPad6:
+                    environment.EquipBackground(LG.BackgroundColor["Yellow"]);
+                    break;
+                case Keys.NumPad7:
+                    environment.EquipBackground(LG.BackgroundColor["Purple"]);
+                    break;
+                case Keys.NumPad8:
+                    environment.EquipBackground(LG.BackgroundColor["Cyan"]);
+                    break;
+                default:    
+                    break;
+
+            }
+        }
+
 
         private void RayTraceRendering(PaintEventArgs e)
         {

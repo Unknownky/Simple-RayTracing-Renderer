@@ -5,7 +5,7 @@ namespace RayTraceApplication
     {
         public static bool isLoop = false; //是否循环
         public static bool isMultiThread = true; //是否多线程
-        private static int loopCount = 2; //循环次数
+        private static int loopCount = LG.MaxLoopCount; //循环次数
         static void Main(string[] args)
         {
             if(isLoop)
